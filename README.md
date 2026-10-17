@@ -2,7 +2,11 @@
 
 A recreation of the 90s PC demoscene: software-rendered effects in a 320×200 buffer, stretched to 4:3 like mode 13h on a VGA monitor, synced to a tracker module played live in the browser.
 
-## Phosphor (first demo)
+## Tracker
+
+The pattern view is a working six-channel tracker. Click the pattern, press Space for edit mode, and play notes on the computer keyboard (Z–M and Q–U rows, FastTracker layout). Hex columns take 0–F. The order list chooses a pattern and a demo scene for each position. Songs autosave in the browser and can be copied or pasted as JSON.
+
+## Phosphor (default song)
 
 `index.html` is a single self-contained page. Open it in a browser, or serve the repo with GitHub Pages.
 
