@@ -24,6 +24,16 @@ Rendering uses three.js r128 at a deliberately low internal resolution, scaled w
 
 The earlier page: a full six-channel tracker under the 320×200 demo screen, with the Phosphor song.
 
+## Demoseed (`demoseed/`)
+
+Generative 90s PC demos: each 32-bit seed unfolds into its own tracker song, demo group, credits and sequence of software-rendered effects, computed in the browser. The same seed always gives the same demo.
+
+- **`demoseed/index.html`, Demoseed 40K** (32,358 bytes). Boots from a DOS prompt, types `DEMOSEED.EXE /S:<seed>`, prints the demo's real loading data, then plays. 19 scene types: a fleet of seed-generated spaceships, voxel flight, glenz vectors, mode 7, bump mapping, water, shadebobs, a dot landscape, plasma, tunnel, rotozoomer, fire, Gouraud objects, vector bobs, interference, metaballs, twister, kaleidoscope, plus a lens. Endless: each finished demo returns to `C:\DEMOS>` and runs the next seed. Tap to skip, F for fullscreen, seed in the hash (`#C0FFEE`).
+- **`demoseed/4k/`**: the 4,039-byte size-coding original.
+- **`demoseed/generator/`**: the full version with an .NFO, a section timeline and seed controls.
+
+Build: `cd demoseed/40k && ./build.sh` (or `demoseed/4k`). Needs Node (`npx terser`) and Python 3. The 8×8 font is rasterized from Press Start 2P, © 2012 The Press Start 2P Project Authors, SIL Open Font License 1.1.
+
 ## Music engine
 
 Six channels, 64-row patterns of note / instrument / effect cells. Effects: `0xy` arpeggio, `1xx`/`2xx` slide, `4xy` vibrato, `Axy` volume slide, `Bxx` jump, `Cxx` volume, `Dxx` break, `Fxx` speed/BPM. Samples are synthesized at 22,050 Hz and quantized to 8 bits, then played through Web Audio with a tick-accurate lookahead scheduler.
