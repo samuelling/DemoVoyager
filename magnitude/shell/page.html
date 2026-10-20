@@ -91,7 +91,7 @@ h2{margin:0 0 10px;font:600 11px var(--mono);letter-spacing:.14em;text-transform
 .compare svg{display:block;width:100%}
 .compare text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
 .tablewrap{overflow-x:auto;margin-top:12px}
-table{border-collapse:collapse;width:100%;font:13px var(--mono);font-variant-numeric:tabular-nums;min-width:640px}
+table{border-collapse:collapse;width:100%;font:13px var(--mono);font-variant-numeric:tabular-nums;min-width:820px}
 th,td{text-align:right;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
 th:first-child,td:first-child{text-align:left}
 th{font-weight:500;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
@@ -113,7 +113,7 @@ tr.cur td{color:var(--amber)}
       <button id="newseed" type="button">New seed</button>
       <button id="nextsong" type="button" title="Fade to the next song (400K and up)">Next song</button>
       <button id="full" type="button">Fullscreen</button>
-      <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared" aria-pressed="true">Shared form</button><button type="button" id="mFree" aria-pressed="false">Free form</button></span>
+      <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared" aria-pressed="true">Shared form</button><button type="button" id="mFree" aria-pressed="false">Free form</button><button type="button" id="mEra" aria-pressed="false">Era idioms</button></span>
     </div>
   </header>
 
@@ -140,6 +140,7 @@ tr.cur td{color:var(--amber)}
     <p class="lede" id="cmpLede"></p>
     <svg id="cmp"></svg>
     <div class="tablewrap"><table id="cmpTable"></table></div>
+    <p class="note" style="margin-top:8px">Repeats: share of bars that nearly repeat an earlier bar. Layers: parts playing in an average bar. Phrase: average section length in bars. d′ heard: whether same-theme sections sound alike.</p>
   </section>
 
   <section class="cols" id="cols"></section>
@@ -158,21 +159,25 @@ const T=[
   sound:'Six voices rendered once into a single mono buffer at start: sine kick, noise snare and hats, saw bass, square arpeggio, triangle lead, one feedback echo, then crushed to 8 bits.',
   pics:'320×200 software pixels: plasma, an XOR tunnel, moiré rings, metaballs, a starfield, voxel flight and a planet with a passing fleet, with a lens bouncing over the plasmas. The file is compressed JavaScript that unpacks itself.'},
  {id:'40k',label:'40K',ceil:40*KB,era:'1997',rule:'file',L:0,
-  free:'Fixed in both modes: the 40K file plays its tracker module as written. It is the baseline the free forms grow from.',
+  free:'Fixed in every mode: the 40K file plays its tracker module as written. It is the baseline the free forms grow from.',
+  era:'Fixed in every mode, and already its era’s idiom: a 1997 tracker module, a handful of patterns reused from an order list, channels switched in and out to arrange.',
   comp:'The shared composer writes a tracker module: 64-row patterns on six channels, a seeded mode and progression, motifs that are varied, inverted and sequenced, and a verse–chorus form.',
   sound:'A small tracker engine plays the six channels through synthesized instruments, with per-note volume commands and an echo channel trailing the lead.',
   pics:'19 software-rendered scenes at 320×200: voxel landscapes, glenz vectors, metaballs, rotozoom, fire, twisters and a flying fleet. It boots from a DOS prompt.'},
  {id:'400k',label:'400K',ceil:400*KB,era:'2003',rule:'file',L:1,
+  era:'Era idioms, 2003 trance and progressive: the form is built by layering. One part enters or leaves every 8 bars; a breakdown strips the drums, a snare roll builds, the climax brings everything back and the outro takes it apart again.',
   free:'Free form, one level: a string of 8- and 16-bar sections over two themes. A return may be varied, lifted an octave or thinned, and nothing more.',
   comp:'The same song, arranged. Every section plays twice and the repeat is varied: passing tones into leaps, an octave lift at the phrase end, a busier bass and a new fill. Voice-led pads and real arpeggios join.',
   sound:'A softsynth: detuned subtractive voices, synthesized drums, tempo-synced stereo delay and a generated reverb.',
   pics:'Hardware 3D at 800×600: textured tunnels, ship fleets over a planet, a city at night, particles and terrain, with glow and feedback post effects.'},
  {id:'4m',label:'4M',ceil:4*MB,era:'2012',rule:'mem',L:2,
+  era:'Era idioms, 2012 EDM: verse hooks as call and answer, a build with a gap before the drop, a big-room or half-time drop, and a second drop that switches style or lifts the key.',
   free:'Free form, two levels: parts made of sections, three themes placed in related keys, builds and drops. A return may carry two of nine transformations: varied, octave, thinned, transposed, fragmented, augmented, reharmonised, half-time or in thirds.',
   comp:'Recomposed from the song’s raw material as a big-room track: intro, verse, build, drop, break, second build, second drop, outro. Builds rise with snare rolls and risers; drops land on an impact.',
   sound:'Supersaws, sidechain ducking from the kick, claps and shakers, white-noise risers, filter sweeps and a longer generated hall.',
   pics:'Every scene is a raymarched distance field: terrain with soft shadows, an Apollonian fractal, a reflective corridor, metaballs, a pulsing block city and a ringed tunnel. The form picks the scene.'},
  {id:'40m',label:'40M',ceil:40*MB,era:'2026',rule:'mem',L:3,
+  era:'Era idioms, 2026 cinematic scoring: acts instead of verses. Leitmotifs change mood with the story (statement, darker, threat, heroic, remembered), ostinatos and drones carry tension, hits mark the cuts, and two motifs meet at the climax.',
   free:'Free form, three levels: movements, sections and phrases of 4 to 16 bars, five themes on a tonal plan, odd meters (3/4, 7/8, 5/4), and returns with up to three of fourteen transformations, adding inversion, retrograde, diminution, canon and modal mixture. Themes can sound together in counterpoint.',
   comp:'Recomposed again in a sonata-like form: prelude, theme A, theme B in the relative key, a development that walks the circle of fifths with a canon, a build, a climax and a coda that ends on a Picardy third. A counter-melody moves against the tune.',
   sound:'Physically modelled instruments built at start: Karplus-Strong plucks and harp, a modal piano with inharmonic partials, modal taiko and timpani, plus strings, choir and oboe in a long hall.',
@@ -181,9 +186,10 @@ const T=[
 const fmt=b=>b>=MB?(b/MB).toFixed(b>=10*MB?1:2)+' MB':b>=KB?(b/KB).toFixed(b>=10*KB?1:2)+' KB':b+' B';
 const X=b=>Math.max(0,Math.min(1,(Math.log10(b)-3)/(Math.log10(100*MB)-3)))*100;
 const $=id=>document.getElementById(id);
-let tier=1,seed=0,started=false,live={},form=null,free=false;
-try{const k=localStorage.getItem('oom-tier');if(k!==null&&T[+k])tier=+k;free=localStorage.getItem('oom-free')==='1';}catch(e){}
-const hm=/^#?([0-9a-fA-F]{1,8})(-free)?$/.exec(location.hash||'');seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;if(hm)free=!!hm[2];
+let tier=1,seed=0,started=false,live={},form=null,mode='shared';
+try{const k=localStorage.getItem('oom-tier');if(k!==null&&T[+k])tier=+k;const mm=localStorage.getItem('oom-mode');if(['shared','free','era'].includes(mm))mode=mm;}catch(e){}
+const hm=/^#?([0-9a-fA-F]{1,8})(-free|-era)?$/.exec(location.hash||'');seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;if(hm)mode=hm[2]?hm[2].slice(1):'shared';
+const sfx=()=>mode==='shared'?'':'-'+mode;
 
 // ruler
 for(const [b,l] of [[KB,'1 KB'],[10*KB,'10 KB'],[100*KB,'100 KB'],[MB,'1 MB'],[10*MB,'10 MB'],[100*MB,'100 MB']]){const d=document.createElement('div');d.className='tick';d.style.left=X(b)+'%';d.innerHTML='<span>'+l+'</span>';$('axis').appendChild(d);}
@@ -212,13 +218,15 @@ function drawCompare(){const svg=$('cmp');svg.innerHTML='';const W=Math.max(300,
       if(x.mat){const p=firstOf[x.mat];if(p&&x.role!=='state'){const a=xs(p.start+p.len/2),b=xs(x.start+x.len/2),h=Math.min(9,(b-a)*.2);svg.append(svgEl('path',{d:`M${a} ${y+5}C${a} ${y+5-h*1.3} ${b} ${y+5-h*1.3} ${b} ${y+5}`,stroke:MATCOL[x.mat],'stroke-opacity':.7,fill:'none'}));}firstOf[x.mat]=x;}});});
   svg.append(svgEl('text',{x:LW,y:H-2},'0'));svg.append(svgEl('text',{x:W,y:H-2,'text-anchor':'end'},`${Math.round(maxR/16)} bars`));
   const rows=form.res.map((r,ti)=>{const st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'–';
-    return `<tr class="${ti===tier?'cur':''}"><td>${T[ti].label}</td><td>${st.secs}</td><td>${st.levels}</td><td>${st.themes}</td><td>${st.xf}</td><td>${st.keys}</td><td>${st.meters}</td><td>${st.bars}</td><td>${m}</td><td>${r.sim&&r.sim.dp!=null?r.sim.dp.toFixed(2):'–'}</td></tr>`;});
-  $('cmpTable').innerHTML='<thead><tr><th>Tier</th><th>Sections</th><th>Levels</th><th>Themes</th><th>Transforms</th><th>Keys</th><th>Meters</th><th>Bars</th><th>Length</th><th>d′ heard</th></tr></thead><tbody>'+rows.join('')+'</tbody>';
-  $('cmpLede').textContent=form.free?'Free form: each tier writes its own structure from the same material, using as much as its allowance permits. The last column asks whether that structure is audible: d′ compares how alike bars of the same theme sound against bars of different themes.':
+    return `<tr class="${ti===tier?'cur':''}"><td>${T[ti].label}</td><td>${st.secs}</td><td>${st.levels}</td><td>${st.themes}</td><td>${st.xf}</td><td>${st.keys}</td><td>${st.meters}</td><td>${st.bars}</td><td>${m}</td><td>${r.idiom?Math.round(r.idiom.reps*100)+'%':'–'}</td><td>${r.idiom?r.idiom.meanLayers.toFixed(1):'–'}</td><td>${r.idiom?r.idiom.avgPhrase.toFixed(1):'–'}</td><td>${r.sim&&r.sim.dp!=null?r.sim.dp.toFixed(2):'–'}</td></tr>`;});
+  $('cmpTable').innerHTML='<thead><tr><th>Tier</th><th>Sections</th><th>Levels</th><th>Themes</th><th>Transforms</th><th>Keys</th><th>Meters</th><th>Bars</th><th>Length</th><th>Repeats</th><th>Layers</th><th>Phrase</th><th>d′ heard</th></tr></thead><tbody>'+rows.join('')+'</tbody>';
+  $('cmpLede').textContent={free:'Free form: each tier writes its own structure from the same material, using as much as its allowance permits. d′ asks whether that structure is audible; Repeats, Layers and Phrase show its idiom.',
+    era:'Era idioms: each tier writes its form in the habits of its own era of demoscene music: tracker reuse, trance layering, EDM build and drop, cinematic acts. Repeats, Layers and Phrase are the signatures to compare; d′ asks whether the form is audible.',
+    shared:'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form or Era idioms to let each tier write its own structure.'}[form.mode];
     'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form to let each tier write its own structure.';}
 
-function drawForm(){$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${free?'-free':''}-${['40k','40k','400k','4m','40m'][tier]}`;const r=form.res[tier],song=form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
-  $('formTitle').textContent=`Form at ${T[tier].label}`+(tier>=2?(form.free?' · free':' · shared'):'');$('detail').textContent='Hover or tap a section for details.';
+function drawForm(){$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${sfx()}-${['40k','40k','400k','4m','40m'][tier]}`;const r=form.res[tier],song=form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
+  $('formTitle').textContent=`Form at ${T[tier].label}`+(tier>=2?' · '+{shared:'shared form',free:'free form',era:'era idioms'}[mode]:'');$('detail').textContent='Hover or tap a section for details.';
   drawDiagram();drawSSM();drawCompare();
   let ev=0;if(r.ev)for(const e of r.ev)ev+=e.ns?e.ns.length:1;
   $('facts').innerHTML=tier===0?`<span><b>${r.secs.length}</b> blocks</span><span><b>${st.bars}</b> bars</span><span><b>6</b> voices</span><span>its own key and tempo</span>`:
@@ -230,16 +238,16 @@ function drawMeter(){const t=T[tier],code=SIZES[t.id]||0,gen=t.rule==='mem'&&liv
   $('readout').innerHTML=`<span class="rule">${rule}</span><span><i class="sw" style="background:var(--fg)"></i>file <b>${fmt(code)}</b>${t.rule==='file'?` · ${(code/t.ceil*100).toFixed(1)}% of the limit`:''}</span>`+
     (t.rule==='mem'?`<span><i class="sw" style="background:repeating-linear-gradient(90deg,var(--amber) 0 3px,transparent 3px 5px)"></i>generated <b>${gen?fmt(gen):'starts with the demo'}</b>${gen?` · ${(gen/t.ceil*100).toFixed(1)}% of the limit`:''}</span>`:'');}
 
-function drawCols(){const t=T[tier];$('cols').innerHTML=`<div><h3>Composition</h3><p>${free&&t.free?t.free:t.comp}</p></div><div><h3>Sound</h3><p>${t.sound}</p></div><div><h3>Pictures</h3><p>${t.pics}</p></div>`;
+function drawCols(){const t=T[tier];$('cols').innerHTML=`<div><h3>Composition</h3><p>${mode!=='shared'&&t[mode]?t[mode]:t.comp}</p></div><div><h3>Sound</h3><p>${t.sound}</p></div><div><h3>Pictures</h3><p>${t.pics}</p></div>`;
   $('note').textContent=t.rule==='mem'?'At 4M and 40M the code is free; the meter counts every texture, render target, mesh, sample bank and impulse response the demo builds while it runs.':tier===0?'The 4K tier has room only for its own tiny composer, so its song differs from the others. Every tier from 40K up starts from the same composition for a given seed.':'From 40K up, the seed produces the same composition; each tier then arranges, voices and pictures it as far as its limit allows.';}
 
-function load(){const t=T[tier],f=$('frame');live={};const nf=f.cloneNode();nf.src=`tiers/${t.id}.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${free&&t.L>0?'-free':''}`;f.replaceWith(nf);
+function load(){const t=T[tier],f=$('frame');live={};const nf=f.cloneNode();nf.src=`tiers/${t.id}.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${t.L>0?sfx():''}`;f.replaceWith(nf);
   nf.addEventListener('load',()=>{try{nf.contentWindow.postMessage({demoseedCmd:'visible',v:stageShown},'*');}catch(e){}if(started&&t.L>0)try{nf.contentWindow.postMessage({demoseedCmd:'start'},'*');}catch(e){}});
   T.forEach((x,i)=>x.el.setAttribute('aria-pressed',i===tier));$('seed').value=seed.toString(16).toUpperCase().padStart(8,'0');
   $('nowplaying').innerHTML=t.L>0&&started?'<b>Starting…</b>':'<b>Click the screen to start.</b> '+(t.id==='40k'?'It boots from DOS.':'');
-  $('nextsong').disabled=t.L<1;try{history.replaceState(null,'','#'+$('seed').value+(free?'-free':''));}catch(e){}
-  $('mShared').setAttribute('aria-pressed',!free);$('mFree').setAttribute('aria-pressed',free);
-  $('sub').textContent=free?'One seed, five size limits, thirty years of demo scene. Same material at every tier; each tier writes its own form.':'One seed, five size limits, thirty years of demo scene. Same song at every tier from 40K up.';
+  $('nextsong').disabled=t.L<1;try{history.replaceState(null,'','#'+$('seed').value+sfx());}catch(e){}
+  $('mShared').setAttribute('aria-pressed',mode==='shared');$('mFree').setAttribute('aria-pressed',mode==='free');$('mEra').setAttribute('aria-pressed',mode==='era');
+  $('sub').textContent='One seed, five size limits, thirty years of demo scene. '+{shared:'Same song at every tier from 40K up.',free:'Same material at every tier; each tier writes its own form.',era:'Same material at every tier; each tier writes its form in its own era’s idiom.'}[mode];
   drawForm();drawMeter();drawCols();}
 // when the stage scrolls out of view the demo stops drawing, so scrolling and reading never starve the music
 // visuals draw only while the whole stage is in view and the page is still; any scroll away from it freezes the picture
@@ -248,11 +256,11 @@ const sendVis=()=>{const v=inView&&!scrolling;if(v===stageShown)return;stageShow
 try{new IntersectionObserver(es=>{for(const e of es)inView=e.intersectionRect.height>=0.6*Math.min(e.boundingClientRect.height,innerHeight);sendVis();},{threshold:[0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1]}).observe($('stage'));}catch(e){}
 addEventListener('scroll',()=>{clearTimeout(scrolling);scrolling=setTimeout(()=>{scrolling=0;sendVis();},250);sendVis();},{passive:true});
 function pick(i){tier=i;try{localStorage.setItem('oom-tier',i);}catch(e){}load();}
-function setSeed(s){seed=s>>>0;form=composeAll(seed,free);load();}
-function setFree(f){free=f;try{localStorage.setItem('oom-free',f?'1':'0');}catch(e){}form=composeAll(seed,free);load();}
+function setSeed(s){seed=s>>>0;form=composeAll(seed,mode);load();}
+function setMode(m){mode=m;try{localStorage.setItem('oom-mode',m);}catch(e){}form=composeAll(seed,mode);load();}
 
 addEventListener('message',e=>{const d=e.data;if(!d||!d.demoseed)return;live=d;if(d.state==='play'||d.state==='fadeout')started=true;
-  if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;form=composeAll(seed,free);$('seed').value=d.seed;drawForm();try{history.replaceState(null,'','#'+d.seed+(free?'-free':''));}catch(_){}}
+  if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;form=composeAll(seed,mode);$('seed').value=d.seed;drawForm();try{history.replaceState(null,'','#'+d.seed+sfx());}catch(_){}}
   const mute=d.sound==='suspended';$('stage').classList.toggle('mute',mute);
   if(mute)$('nowplaying').innerHTML='<b class="warn">Sound is off. Click the screen to turn it on.</b>';else if(d.title)$('nowplaying').innerHTML=`<b>${d.title}</b> by ${d.group} · seed ${d.seed}`;
   if(playX&&d.pos!=null&&d.rows&&d.state==='play'&&d.tier===T[tier].label){const W=+$('diag').getAttribute('viewBox').split(' ')[2],x=Math.min(1,d.pos/d.rows)*W;playX.setAttribute('x1',x);playX.setAttribute('x2',x);playX.setAttribute('opacity',1);}
@@ -260,7 +268,7 @@ addEventListener('message',e=>{const d=e.data;if(!d||!d.demoseed)return;live=d;i
 window.addEventListener('blur',()=>{if(document.activeElement===$('frame'))started=true;});
 $('seed').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=parseInt(e.target.value,16);if(!isNaN(v))setSeed(v);}});
 $('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)&&v>>>0!==seed)setSeed(v);});
-$('mShared').onclick=()=>setFree(false);$('mFree').onclick=()=>setFree(true);
+$('mShared').onclick=()=>setMode('shared');$('mFree').onclick=()=>setMode('free');$('mEra').onclick=()=>setMode('era');
 let rz=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(form){drawDiagram();drawCompare();}},150);});
 $('newseed').onclick=()=>setSeed((Math.random()*4294967296)>>>0);
 $('nextsong').onclick=()=>{try{$('frame').contentWindow.postMessage({demoseedCmd:'next'},'*');}catch(e){}};

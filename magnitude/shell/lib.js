@@ -19,16 +19,17 @@ function trackerEvents(song){const ev=[];let R0=0;for(const s of song.sections){
   for(const c of [2,3,4,5]){let open=null;for(let r=0;r<ROWS;r++){const n=P[r][c].n;if(n===null)continue;if(open){open.d=R0+r-open.t;open=null;}if(n>0){open={i:c===4?'lead':c===2?'bass':c===3?'arp':'pad',t:R0+r,n,d:1};ev.push(open);}}if(open)open.d=R0+ROWS-open.t;}
   for(let r=0;r<ROWS;r++)for(const c of [0,1])if(P[r][c].n>0)ev.push({i:'kick',t:R0+r});R0+=ROWS;}return ev;}
 const sharedThemes=song=>{const M=song.mat;return{A:{motifs:{A:M.m[0],B:M.m[1]},shape:M.sh1,prog:M.P1,start:M.start1},B:{motifs:{A:M.m[2],B:M.m[3]},shape:M.sh2,prog:M.P2,start:M.start2}};};
-function composeAll(sd,free){const song=genSong(sd),res=[];
+function composeAll(sd,mode){if(mode===true)mode='free';if(!mode)mode='shared';const free=mode!=='shared';const song=genSong(sd),res=[];
   const k4=[['intro','intro',.15],['groove','build',.4],['A','A',.7],['A','A',.7],['break','break',.25],['B','B',.7],['B','B',.7],['groove','build',.5],['A lift','A',.85],['outro','outro',.3]];
   res.push({secs:k4.map(([n,m,e],i)=>({name:n,start:i*64,len:64,bars:4,meter:16,role:/^[AB]/.test(m)?(i===2||i===5?'state':'ret'):m,mat:/^[AB]/.test(m)?m:null,xf:n==='A lift'?['transpose']:[],key:n==='A lift'?2:0,energy:e})),rows:640,levels:1,ev:null,len:null});
   {const secs=sharedSecs(song.sections.map(s=>[s.name,ROWS]),song,0);res.push({secs,rows:song.sections.length*ROWS,levels:1,ev:trackerEvents(song),len:timeOf(song,song.sections.length*ROWS),themes:sharedThemes(song),inst:{A:'lead',B:'lead'}});}
-  for(const L of [1,2,3]){const sc=free?arrangeFree(song,L):arrange(song,L);
+  for(const L of [1,2,3]){const sc=mode==='era'?arrangeEra(song,L):mode==='free'?arrangeFree(song,L):arrange(song,L);
     const secs=free?sc.secs.map(x=>Object.assign({},x,{tr:x.rel?x.key-(song.minor?3:-3):x.key,mat:/intro|outro|build|bridge/.test(x.role)?null:x.mat})):sharedSecs(sc.secs.map(x=>[x.name,x.len]),song,L);
-    const levels=free?(L===1?1:sc.tree.kids.some(g=>g.kids.some(k=>k.kids))?3:2):1;
+    const levels=free?(sc.tree.kids.some(g=>g.kids.some(k=>k.kids))?3:sc.tree.kids.some(g=>g.label)?2:1):1;
     res.push({secs,rows:sc.rows,levels,ev:sc.ev,tree:free?sc.tree:null,len:timeOf(song,sc.rows),themes:free?sc.themes:sharedThemes(song),inst:free?sc.inst:[null,{A:'lead',B:'lead'},{A:'lead',B:'keys'},{A:'oboe',B:'bell'}][L]});}
   for(const r of res)r.sim=r.ev?similarity(r,song):null;
-  return{song,res,free};}
+  for(const r of res)if(r.sim)r.idiom=idiomStats(r);
+  return{song,res,free,mode};}
 
 // bar-by-bar similarity of what is actually played, in the terms a listener recognises a tune by:
 // melody intervals and scale degrees (so a transposed return still matches), melody rhythm, harmony as scale degrees, drum density
@@ -107,3 +108,12 @@ function perBar(r){const sim=r.sim;if(!sim)return null;const {bars}=sim,N=bars.l
   for(const e of r.ev){if(e.t<0||e.t>=r.rows||e.i==='sweep')continue;const k=idx(e.t),c=e.ns?e.ns.length:1;notes[k]+=c;(inst[e.i]||(inst[e.i]=new Float32Array(N)))[k]+=c;}
   return{notes,inst};}
 const progName=(song,prog)=>prog.map(d=>{const c=chordInfo(song.iv,d),rn=['I','II','III','IV','V','VI','VII'][d];return(c.third===3?rn.toLowerCase():rn)+(c.fifth===6?'°':'');}).join('–');
+
+// ---- era signatures: how many layers play, how often they change, how long phrases run, how much is repeated
+function idiomStats(r){const {bars,S,N}=r.sim,lay=bars.map(()=>new Set()),idx=t=>{let lo=0,hi=N-1;while(lo<hi){const m=(lo+hi+1)>>1;if(bars[m].t0<=t)lo=m;else hi=m-1;}return lo;};
+  for(const e of r.ev){if(e.t<0||e.t>=r.rows)continue;const l=layerOf(e.i);if(l!=='fx')lay[idx(e.t)].add(l);}
+  const layers=lay.map(x=>x.size);let changes=0;for(let i=1;i<N;i++)if(layers[i]!==layers[i-1])changes++;
+  // a bar "repeats" if some earlier bar is nearly the same (similarity 0.9 or more)
+  const rep=new Uint8Array(N);for(let j=1;j<N;j++)for(let i=0;i<j;i++)if(S[i*N+j]>=.9){rep[j]=1;break;}
+  const reps=rep.reduce((a,b)=>a+b,0)/N,phr=r.secs.map(x=>x.bars),avgPhrase=phr.reduce((a,b)=>a+b,0)/phr.length;
+  return{layers,changes,rep,reps,avgPhrase,maxLayers:Math.max(...layers),meanLayers:layers.reduce((a,b)=>a+b,0)/N};}

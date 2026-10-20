@@ -44,7 +44,7 @@ button.btn,.seg2 button{font:600 13px var(--body);color:var(--fg);background:var
 .kpi{padding:10px 12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
 .kpi b{display:block;font:600 22px/1.1 var(--display);font-variant-numeric:tabular-nums}
 .kpi span{font:11px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.card{display:grid;gap:10px}
+.card{display:grid;gap:10px;align-content:start}
 h3{margin:0;font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .card p.cap{margin:0;font:13px/1.5 var(--mono);color:var(--muted);max-width:92ch}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}
@@ -102,7 +102,7 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
     <div class="controls">
       <label for="seed">Seed</label><input id="seed" maxlength="8" spellcheck="false" autocomplete="off">
       <button class="btn" id="newseed" type="button">New seed</button>
-      <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared">Shared form</button><button type="button" id="mFree">Free form</button></span>
+      <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared">Shared form</button><button type="button" id="mFree">Free form</button><button type="button" id="mEra">Era idioms</button></span>
       <span class="seg2" role="group" aria-label="Tier" id="tiers"></span>
       <a class="playlink" id="playlink" href="./">Play this in the player</a>
     </div>
@@ -124,7 +124,7 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
     </div>
 
     <div class="grid2">
-      <section class="card"><h3>Energy planned, notes played</h3><svg id="energy"></svg><div class="readout" id="energyRead">Point at the charts for a bar.</div></section>
+      <section class="card"><h3>Energy, notes and layers</h3><svg id="energy"></svg><div class="readout" id="energyRead">Point at the charts for a bar.</div></section>
       <section class="card"><h3>Who plays when</h3><svg id="heat"></svg><div class="readout" id="heatRead">Point at a cell.</div></section>
     </div>
 
@@ -146,7 +146,7 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
 
     <h2>One number in, a whole demo out</h2>
     <p>Everything starts from a 32-bit seed. A hash splits it into independent random streams, one each for the names, the composition, the instruments, the scene order, the visuals and the free-form plans, so changing how one part is generated never disturbs the others. The same seed produces the same song and the same pictures on any machine.</p>
-    <div class="flow"><span>seed</span><i>→</i><span>composition</span><i>→</i><span>form (shared or free)</span><i>→</i><span>score: notes with times</span><i>→</i><span>era synth</span><i>+</i><span>scenes chosen by section role</span></div>
+    <div class="flow"><span>seed</span><i>→</i><span>composition</span><i>→</i><span>form (shared, free or era idioms)</span><i>→</i><span>score: notes with times</span><i>→</i><span>era synth</span><i>+</i><span>scenes chosen by section role</span></div>
 
     <h2>The composer every tier shares</h2>
     <p>From 40K up the seed first goes through one composer. It picks a mode (aeolian, dorian, phrygian, harmonic minor, ionian or mixolydian, weighted toward the minor ones), a key, a tempo between 112 and 152 bpm, and two four-chord progressions from curated lists, filtered so no chord is diminished. It then writes four one-bar motifs: onsets are drawn against a metric template that favours downbeats, and each step moves mostly one or two scale degrees. A phrase shape such as <code>AABA</code> strings the motifs into four-bar phrases. On every beat the melody is pulled to the nearest chord tone, and the last note of a phrase lands on the root. The composer also picks a drum style, a bass rhythm and an arpeggio style.</p>
@@ -164,6 +164,15 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
     <p>A plan is a short layout string such as <code>AtB|xxb|cBA</code>. Capital letters are themes: the first appearance is a statement, later ones are returns that draw random transformations from the tier’s list. Lower-case letters are functions: <code>t</code> bridge, <code>x</code> development, <code>b</code> build, <code>d</code> drop, <code>c</code> climax, <code>k</code> break, <code>v</code> variation. Bars between <code>|</code> form a part (4M) or a movement (40M), and at 40M long sections split again into phrases of 4 to 8 bars in patterns like <code>aba</code> or <code>aab</code>. Each tier chooses among several such layouts (rondo-like, sonata-like, arch, theme and variations, build and drop), so forms differ from seed to seed.</p>
     <p>Each section gets an energy level: a base value for its role, plus a swell that peaks about 62% of the way through the piece. Builds and bridges take the key of whatever follows them.</p>
 
+    <h2>Era idioms: structure in the habits of its time</h2>
+    <p>Free form scales how much structure a tier may use, but its vocabulary (rondo, sonata, inversion, canon) comes from the conservatory, not from the scene. Era idioms keep the same material and give each tier the structural habits of its own era of demoscene music.</p>
+    <div class="tbl"><table><thead><tr><th>Tier</th><th>Era</th><th>How the form is built</th></tr></thead><tbody>
+      <tr><td>40K</td><td>1997 tracker</td><td>Already idiomatic: a few patterns reused from an order list, channels switched in and out, an echo channel, a key lift for the last chorus.</td></tr>
+      <tr><td>400K</td><td>2003 trance and progressive</td><td>Layering is the structure. Every 8 bars one part enters or leaves: kick, hats, bass, arpeggio, lead, pad. A breakdown strips the drums, a snare roll builds, the climax brings every layer back, the outro removes them one by one.</td></tr>
+      <tr><td>4M</td><td>2012 EDM</td><td>Build and drop. Verse hooks as call and answer between lead and keys; a build with a gap before the drop; a big-room or half-time drop; a second drop that either switches style or lifts the key.</td></tr>
+      <tr><td>40M</td><td>2026 cinematic scoring</td><td>Acts, not verses: opening, Act I, Act II, Act III, epilogue. Leitmotifs change mood with the story (statement, darker, threat, heroic, remembered), ostinatos and drones carry tension, hits mark the cuts, two motifs meet at the climax, and the last statement returns slowed down.</td></tr></tbody></table></div>
+    <p>These are broad strokes of a varied scene, chosen as each era’s most recognisable habits rather than a complete survey. Tempo changes, common in film-style scores, are not modelled; the 40M tier suggests them with augmented and diminished rhythms instead.</p>
+
     <h2>Turning a plan into notes</h2>
     <ul>
       <li><b>Harmony.</b> One chord per bar from the theme’s progression. A relative-key section re-centres it, a reharmonised section swaps in a second progression, a development walks the circle of fifths, a build sits on the dominant, and statements and returns close with V–I.</li>
@@ -179,6 +188,7 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
     <p><b>d′.</b> Take every pair of themed sections (intros, outros, builds and bridges are left out), line them up from their starts, and collect the bar-for-bar similarities. Pairs on the same theme go in one pool and pairs on different themes in the other. Then:</p>
     <div class="eq">d′ = (mean_same − mean_different) / √((var_same + var_different) / 2)</div>
     <p>Above about 1.5 the form is plain to hear. Between 0.7 and 1.5 it is audible but disguised. Below that the transformations largely hide it.</p>
+    <p><b>Era signatures.</b> Three measures separate idioms where d′ cannot. <i>Layers</i> counts the parts playing in each bar (kick, hats, snare, bass, arpeggio, pad, lead, counter-melody); a trance form shows as a staircase up and down. <i>Repeats</i> is the share of bars that nearly repeat an earlier bar (similarity 0.9 or more): high for loop-built tracker and trance music, lower for through-composed scores. <i>Phrase</i> is the average section length in bars.</p>
     <p><b>Recognisable.</b> For each return, the mean bar-for-bar similarity to its theme’s first appearance.</p>
     <p><b>Chords.</b> Estimated per bar by matching the accompaniment’s pitch classes, with the bass weighted up, against every major, minor and diminished triad, then named against the section’s key.</p>
 
@@ -201,31 +211,31 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
 (()=>{
 const $=id=>document.getElementById(id);
 const TIERS=[['40k','40K',1],['400k','400K',2],['4m','4M',3],['40m','40M',4]];
-let seed=0,free=true,ti=4,form=null,zoom=2;
+let seed=0,mode='free',ti=4,form=null,zoom=2;const sfx=()=>mode==='shared'?'':'-'+mode;
 const hx=v=>(v>>>0).toString(16).toUpperCase().padStart(8,'0');
 const mmss=s=>Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');
-// state from the link: #SEED[-free][-tier] or #method
-const h=(location.hash||'').slice(1),m=/^([0-9a-fA-F]{1,8})(-free)?(?:-(40k|400k|4m|40m))?$/i.exec(h);
-seed=m?parseInt(m[1],16)>>>0:(Math.random()*4294967296)>>>0;if(m){free=!!m[2];if(m[3])ti=TIERS.find(t=>t[0]===m[3].toLowerCase())[2];}
+// state from the link: #SEED[-free|-era][-tier] or #method
+const h=(location.hash||'').slice(1),m=/^([0-9a-fA-F]{1,8})(-free|-era)?(?:-(40k|400k|4m|40m))?$/i.exec(h);
+seed=m?parseInt(m[1],16)>>>0:(Math.random()*4294967296)>>>0;if(m){mode=m[2]?m[2].slice(1).toLowerCase():'shared';if(m[3])ti=TIERS.find(t=>t[0]===m[3].toLowerCase())[2];}
 TIERS.forEach(([id,lab,i])=>{const b=document.createElement('button');b.type='button';b.textContent=lab;b.onclick=()=>{ti=i;render();};b.dataset.i=i;$('tiers').append(b);});
 [1,2,4,8].forEach(z=>{const b=document.createElement('button');b.type='button';b.textContent=z+'×';b.onclick=()=>{zoom=z;drawRoll();mark();};b.dataset.z=z;$('zoom').append(b);});
 function mark(){[...$('tiers').children].forEach(b=>b.setAttribute('aria-pressed',+b.dataset.i===ti));[...$('zoom').children].forEach(b=>b.setAttribute('aria-pressed',+b.dataset.z===zoom));
-  $('mShared').setAttribute('aria-pressed',!free);$('mFree').setAttribute('aria-pressed',free);}
+  $('mShared').setAttribute('aria-pressed',mode==='shared');$('mFree').setAttribute('aria-pressed',mode==='free');$('mEra').setAttribute('aria-pressed',mode==='era');}
 function tab(meth){$('dissect').hidden=meth;$('method').hidden=!meth;$('tabD').setAttribute('aria-selected',!meth);$('tabM').setAttribute('aria-selected',meth);}
 $('tabD').onclick=()=>tab(false);$('tabM').onclick=()=>tab(true);if(h==='method')tab(true);
-$('mShared').onclick=()=>{free=false;compose();};$('mFree').onclick=()=>{free=true;compose();};
+$('mShared').onclick=()=>{mode='shared';compose();};$('mFree').onclick=()=>{mode='free';compose();};$('mEra').onclick=()=>{mode='era';compose();};
 $('newseed').onclick=()=>{seed=(Math.random()*4294967296)>>>0;compose();};
 $('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)){seed=v>>>0;compose();}});
-function compose(){form=composeAll(seed,free);render();}
+function compose(){form=composeAll(seed,mode);render();}
 const R=()=>form.res[ti];
 
 function render(){mark();const r=R(),song=form.song,names=genNames(seed),st=stats(r);
-  try{history.replaceState(null,'','#'+hx(seed)+(free?'-free':'')+'-'+TIERS.find(t=>t[2]===ti)[0]);}catch(e){}
-  $('seed').value=hx(seed);$('playlink').href='./#'+hx(seed)+(free?'-free':'');
+  try{history.replaceState(null,'','#'+hx(seed)+sfx()+'-'+TIERS.find(t=>t[2]===ti)[0]);}catch(e){}
+  $('seed').value=hx(seed);$('playlink').href='./#'+hx(seed)+sfx();
   $('songTitle').textContent=`${names.title} by ${names.group}`;
-  $('songMeta').textContent=`${TIERS.find(t=>t[2]===ti)[1]} · ${free&&ti>1?'free form':'shared form'} · ${song.desc.key.toLowerCase()} · ${song.bpm} bpm · seed ${hx(seed)}`;
+  $('songMeta').textContent=`${TIERS.find(t=>t[2]===ti)[1]} · ${ti>1?{shared:'shared form',free:'free form',era:'era idioms · '+ERA_LABEL[ti-1]}[mode]:'tracker module (fixed)'} · ${song.desc.key.toLowerCase()} · ${song.bpm} bpm · seed ${hx(seed)}`;
   let notes=0;for(const e of r.ev)if(e.i!=='sweep')notes+=e.ns?e.ns.length:1;
-  const K=[[st.secs,'sections'],[st.levels,'levels'],[st.themes,'themes'],[st.xf,'transforms'],[st.keys,'key areas'],[st.meters,'meters'],[st.bars,'bars'],[mmss(r.len),'length'],[notes.toLocaleString('en-US'),'notes and hits'],[new Set(r.ev.map(e=>e.i)).size,'instruments'],[r.sim.dp==null?'–':r.sim.dp.toFixed(2),'d′ heard']];
+  const K=[[st.secs,'sections'],[st.levels,'levels'],[st.themes,'themes'],[st.xf,'transforms'],[st.keys,'key areas'],[st.meters,'meters'],[st.bars,'bars'],[mmss(r.len),'length'],[notes.toLocaleString('en-US'),'notes and hits'],[new Set(r.ev.map(e=>e.i)).size,'instruments'],[Math.round(r.idiom.reps*100)+'%','repeats'],[r.idiom.meanLayers.toFixed(1),'layers per bar'],[r.idiom.avgPhrase.toFixed(1),'bars per phrase'],[r.sim.dp==null?'–':r.sim.dp.toFixed(2),'d′ heard']];
   $('kpis').innerHTML=K.map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('');
   r.chords=chordsPerBar(r,song);r.pb=perBar(r);
   formDiagram($('diag'),r,song,{detail:t=>{$('detail').textContent=t;},legend:$('legend')});$('detail').textContent='Hover or tap a section for details.';
@@ -291,16 +301,19 @@ function drawDist(){const r=R(),svg=$('dist'),W=Math.max(280,svg.clientWidth||40
   $('distRead').innerHTML=`<span style="color:#c98500">same theme</span>: ${same.length} pairs, mean ${ms.toFixed(2)} · <span style="color:#8e919a">different themes</span>: ${diff.length} pairs, mean ${md.toFixed(2)} · <b>d′ = ${dp.toFixed(2)}</b>`;}
 
 // ---- energy and density, two charts on one bar axis
-function drawEnergy(){const r=R(),svg=$('energy'),W=Math.max(280,svg.clientWidth||400),H1=90,H2=90,gap=26,H=H1+H2+gap+18,bars=r.sim.bars,N=bars.length,xs=i=>i/N*W;svg.innerHTML='';svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('height',H);
+function drawEnergy(){const r=R(),svg=$('energy'),W=Math.max(280,svg.clientWidth||400),H1=90,H2=90,H3=70,gap=26,H=H1+H2+H3+2*gap+18,bars=r.sim.bars,N=bars.length,xs=i=>i/N*W;svg.innerHTML='';svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('height',H);
   const en=bars.map(b=>b.sec.energy),nt=r.pb.notes,mx=Math.max(...nt);
   svg.append(svgEl('text',{x:0,y:10},'planned energy'));svg.append(svgEl('line',{x1:0,x2:W,y1:H1,y2:H1,stroke:'#272a31'}));
   let d='';en.forEach((v,i)=>{const y=H1-v*(H1-18);d+=(i?'L':'M')+xs(i)+' '+y+'H'+xs(i+1);});svg.append(svgEl('path',{d,stroke:'#c98500','stroke-width':2,fill:'none'}));
   const y2=H1+gap;svg.append(svgEl('text',{x:0,y:y2+10},'notes and hits per bar'));svg.append(svgEl('line',{x1:0,x2:W,y1:y2+H2,y2:y2+H2,stroke:'#272a31'}));
   nt.forEach((v,i)=>{const hh=v/mx*(H2-18);svg.append(svgEl('rect',{x:xs(i)+.5,y:y2+H2-hh,width:Math.max(1,xs(1)-1.5),height:hh,fill:'#8e919a','fill-opacity':.8}));});
-  svg.append(svgEl('text',{x:W,y:H-2,'text-anchor':'end'},`${N} bars`));
+  const y3=y2+H2+gap,ly=r.idiom.layers,lm=Math.max(...ly,1);svg.append(svgEl('text',{x:0,y:y3+10},'layers playing (parts with notes in the bar)'));svg.append(svgEl('line',{x1:0,x2:W,y1:y3+H3,y2:y3+H3,stroke:'#272a31'}));
+  let d3='';ly.forEach((v,i)=>{const y=y3+H3-v/lm*(H3-18);d3+=(i?'L':'M')+xs(i)+' '+y+'H'+xs(i+1);});svg.append(svgEl('path',{d:d3,stroke:'#ebe8e1','stroke-width':2,fill:'none'}));
+  r.idiom.rep.forEach((v,i)=>{if(v)svg.append(svgEl('rect',{x:xs(i),y:y3+H3+2,width:Math.max(1,xs(1)-1),height:3,fill:'#8e919a'}));});
+  svg.append(svgEl('text',{x:W,y:H-2,'text-anchor':'end'},`${N} bars · grey ticks = bar repeats an earlier one`));
   const cross=svgEl('line',{y1:0,y2:H-14,stroke:'#ebe8e1','stroke-width':1,opacity:0});svg.append(cross);const hov=svgEl('rect',{x:0,y:0,width:W,height:H,fill:'transparent'});svg.append(hov);
   hov.addEventListener('mousemove',ev=>{const rc=svg.getBoundingClientRect(),i=Math.max(0,Math.min(N-1,Math.floor((ev.clientX-rc.left)/rc.width*N)));cross.setAttribute('x1',xs(i+.5));cross.setAttribute('x2',xs(i+.5));cross.setAttribute('opacity',.6);
-    $('energyRead').textContent=`bar ${i+1} · ${bars[i].sec.name} · energy ${en[i].toFixed(2)} · ${nt[i]} notes and hits`;});}
+    $('energyRead').textContent=`bar ${i+1} · ${bars[i].sec.name} · energy ${en[i].toFixed(2)} · ${nt[i]} notes and hits · ${r.idiom.layers[i]} layers${r.idiom.rep[i]?' · repeats an earlier bar':''}`;});}
 
 // ---- instrument activity
 function drawHeat(){const r=R(),svg=$('heat'),W=Math.max(280,svg.clientWidth||400),LW=74,bars=r.sim.bars,N=bars.length,inst=r.pb.inst;svg.innerHTML='';

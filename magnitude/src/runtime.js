@@ -4,7 +4,7 @@ function runTier(cfg){
   const cv=document.getElementById('c'),ov=document.getElementById('o'),x=ov.getContext('2d');
   let meterItems={},ac=null,synth=null,cond=null,demo=null,vis=null,state='idle',fade=0;
   const meter=(label,bytes)=>{meterItems[label]=(meterItems[label]||0)+bytes;};
-  const report=()=>{const total=Object.values(meterItems).reduce((a,b)=>a+b,0);try{parent.postMessage({demoseed:1,tier:cfg.tier,generated:total,items:meterItems,seed:demo&&hex8(demo.seed),title:demo&&demo.names.title,group:demo&&demo.names.group,state,free,sound:ac?ac.state:null,budget:cfg.budget||0,form:demo&&demo.score.secs.map(s=>[s.name,s.len]),bpm:demo&&demo.song.bpm,pos:cond&&state==='play'?cond.pos().row:0,rows:demo&&demo.score.rows},'*');}catch(e){}};
+  const report=()=>{const total=Object.values(meterItems).reduce((a,b)=>a+b,0);try{parent.postMessage({demoseed:1,tier:cfg.tier,generated:total,items:meterItems,seed:demo&&hex8(demo.seed),title:demo&&demo.names.title,group:demo&&demo.names.group,state,mode,sound:ac?ac.state:null,budget:cfg.budget||0,form:demo&&demo.score.secs.map(s=>[s.name,s.len]),bpm:demo&&demo.song.bpm,pos:cond&&state==='play'?cond.pos().row:0,rows:demo&&demo.score.rows},'*');}catch(e){}};
   const resize=()=>{const dpr=Math.min(cfg.maxDpr||2,window.devicePixelRatio||1),w=innerWidth,h=innerHeight;
     const ar=cfg.aspect||16/9;let W=w,H=w/ar;if(H>h){H=h;W=h*ar;}
     const rw=cfg.fixedW||Math.round(W*dpr),rh=cfg.fixedW?Math.round(cfg.fixedW/ar):Math.round(H*dpr);
@@ -13,8 +13,8 @@ function runTier(cfg){
   addEventListener('resize',resize);
   vis=cfg.makeVisuals(cv,meter);if(!vis){x.fillStyle='#fff';x.fillText('This tier needs WebGL.',20,40);return;}
   resize();
-  const hm=/^#?([0-9a-fA-F]{1,8})(-free)?/.exec(location.hash||'');let seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;const free=!!(hm&&hm[2]);
-  function build(sd){meterItems={};const names=genNames(sd),song=genSong(sd),score=free?arrangeFree(song,cfg.L):arrange(song,cfg.L);
+  const hm=/^#?([0-9a-fA-F]{1,8})(-free|-era)?/.exec(location.hash||'');let seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;const mode=hm&&hm[2]?hm[2].slice(1):'shared';
+  function build(sd){meterItems={};const names=genNames(sd),song=genSong(sd),score=mode==='era'?arrangeEra(song,cfg.L):mode==='free'?arrangeFree(song,cfg.L):arrange(song,cfg.L);
     const n=names;n.scroll=`${n.group} PRESENTS ${n.title}  ·  CODE ${n.code}  ·  MUSIC ${n.music}  ·  GRAPHICS ${n.gfx}  ·  GREETINGS TO ${n.greets.join(' · ')}  ·  SEED ${hex8(sd)}  ·  `;
     const R=Rng(hashSeed(sd,13)),pool=cfg.pool.slice();let bag=[];
     const used=[],last=score.secs.length-1,scenes=score.secs.map((s,i)=>{if(i===0)return cfg.intro;if(i===last)return cfg.outro;if(s.sg!==undefined&&i>1&&score.secs[i-1].sg===s.sg)return null; // phrases of one section share its scene
@@ -22,7 +22,7 @@ function runTier(cfg){
       if(!bag.length){bag=pool.slice();for(let i=bag.length-1;i>0;i--){const j=R.ri(0,i);[bag[i],bag[j]]=[bag[j],bag[i]];}}const pk=bag.pop();used.push(pk);return pk;});for(let i=1;i<scenes.length;i++)if(scenes[i]===null)scenes[i]=scenes[i-1];
     return{seed:sd,names,song,score,scenes};}
   function start(sd){
-    demo=build(sd);try{history.replaceState(null,'','#'+hex8(sd)+(free?'-free':''));}catch(e){}
+    demo=build(sd);try{history.replaceState(null,'','#'+hex8(sd)+(mode!=='shared'?'-'+mode:''));}catch(e){}
     vis.setup(demo,meter);
     if(synth)synth.stop();if(cond)cond.stop();
     synth=makeSynth(ac,cfg.L,sd,meter);synth.setTempo(demo.song.bpm);cond=Conductor(ac,demo.song,demo.score,synth.play,null);cond.start(ac.currentTime+.15);

@@ -82,12 +82,22 @@ function arrangeFree(song,L){
   const PR=['','′','″','‴','⁗'];
   for(const n of leaves){const m=n.mat+(n.prime?PR[Math.min(4,n.prime)]:'');
     n.name=n.role==='state'?`theme ${n.mat}`+(n.phrase?` ${n.phrase}`:''):n.role==='ret'?m+(n.phrase?` ${n.phrase}`:''):n.role==='variation'?`variation ${n.var}`+(n.phrase?` ${n.phrase}`:''):n.role;}
-  // ---- 2. render
+  const out=renderPlan(song,L,leaves,TH,INST,R);
+  return Object.assign(out,{tree,free:true,themes:TH,inst:INST});
+}
+
+
+// which layer of a mix an instrument belongs to (used to switch layers in and out, and to count them)
+const LAYER_OF={kick:'kick',taiko:'kick',crash:'kick',hat:'hats',ohat:'hats',shaker:'hats',snare:'snare',clap:'snare',tom:'snare',bass:'bass',arp:'arp',pluck:'arp',harp:'arp',
+  pad:'pad',strings:'pad',choir:'pad',stab:'pad',lead:'lead',leadx:'lead',oboe:'lead',bell:'lead',keys:'lead',piano:'lead',harm:'lead',echo:'lead',counter:'counter',riser:'fx',impact:'fx',sweep:'fx',timp:'fx'};
+const layerOf=i=>LAYER_OF[i]||'fx';
+function renderPlan(song,L,leaves,TH,INST,R){
+  const M=song.mat,minor=song.minor,okIn=(iv,d)=>degS(iv,d+4)-degS(iv,d)===7;
   const ev=[],secs=[];let R0=0;const vl=voicer();
   const add=(i,t,o={})=>{ev.push(Object.assign({i,t:R0+t},o));};
   const par=minor?[0,2,4,5,7,9,11]:[0,2,3,5,7,8,10];
-  for(const n of leaves){const BL=n.meter,bars=n.bars,len=BL*bars,iv=n.xf.includes('modal')?par:song.iv,tr=n.key.tr,e=n.energy,T=TH[n.mat],X=x=>n.xf.includes(x);
-    secs.push({name:n.name,start:R0,len,bars,meter:BL,role:n.role,mat:n.mat,xf:n.xf.slice(),key:tr+(n.key.rel?(minor?3:-3):0),rel:!!n.key.rel,energy:e,sg:n.sg});
+  for(const n of leaves){const ev0=ev.length,BL=n.meter,bars=n.bars,len=BL*bars,iv=n.xf.includes('modal')?par:song.iv,tr=n.key.tr,e=n.energy,T=TH[n.mat],X=x=>n.xf.includes(x);
+    secs.push({name:n.name,start:R0,len,bars,meter:BL,role:n.role,mat:n.mat,xf:n.xf.slice(),layers:n.layers||null,group:n.group||null,key:tr+(n.key.rel?(minor?3:-3):0),rel:!!n.key.rel,energy:e,sg:n.sg});
     const ch=d=>chordInfo(iv,d),tones=(d,t2=tr)=>{const h=ch(d),r=song.key+h.root+t2;return{root:r,pcs:[0,h.third,h.fifth].map(x=>pcl(r+x)),iv:[0,h.third,h.fifth,h.sev]};};
     // harmony per bar
     let prog=n.key.rel?T.rel:X('reharm')||X('sub')?T.alt:T.prog;const hr=X('augment')?2:1;
@@ -110,8 +120,10 @@ function arrangeFree(song,L){
     const quiet=n.role==='intro'||n.role==='outro'||n.role==='break';
     if(!(n.role==='intro'&&L<3)){const mel=phrase(motifs,T.shape,T.start+(n.role==='drop'||n.role==='climax'?2:0),{frag:n.role==='development'||n.role==='bridge'||n.role==='build'?3:0,
         seq:n.role==='development'?-1:n.role==='build'?1:0,inv:X('invert')||(n.role==='outro'&&L===3),thin:X('thin')||quiet||e<.35,retro:X('retro')});
-      let inst=INST[n.mat]||'lead';if(L>=2&&e>.85)inst='leadx';if(L===3&&quiet)inst='piano';
-      play(inst,mel,{oct:(X('octave')?1:0)-(quiet&&L<3?1:0),v:quiet?.75:1});
+      let inst=n.inst||INST[n.mat]||'lead';if(!n.inst){if(L>=2&&e>.85)inst='leadx';if(L===3&&quiet)inst='piano';}
+      if(X('callresp')){const resp=phrase({A:T.motifs.B,B:T.motifs.C||T.motifs.A,C:T.motifs.A},T.shape,T.start-2,{thin:true});
+        play(inst,mel.filter(q=>Math.floor(q.t/BL)%2===0),{oct:X('octave')?1:0});play(n.resp||'keys',resp.filter(q=>Math.floor(q.t/BL)%2===1),{oct:-1,v:.85});}
+      else play(inst,mel,{oct:(X('octave')?1:0)-(quiet&&L<3?1:0),v:quiet?.75:1});
       if(L===1&&e>.45)play('echo',mel,{off:3,v:.35});
       if(X('harmony')||(L>=2&&e>.8))play(L===3?'counter':'harm',mel,{dd:-2,v:.5});
       if(X('canon'))play('counter',mel.filter(q=>q.t+8<len).map(q=>({...q,t:q.t+8})),{dd:-2,oct:-1,v:.6});
@@ -122,12 +134,12 @@ function arrangeFree(song,L){
           if(best!==null){add('counter',t,{n:best,d:4,v:.45});c=best;}}}}
     // accompaniment by energy
     const padI=L===3?'strings':'pad';
-    chords.forEach((c,b)=>{const Tn=tones(c),v=vl(Tn.pcs.concat(e>.7?[pcl(Tn.root+Tn.iv[3])]:[]).slice(0,4),48,72);add(padI,b*BL,{ns:v,d:BL,v:quiet?.6:.75});
+    chords.forEach((c,b)=>{const Tn=tones(c),v=vl(Tn.pcs.concat(e>.7?[pcl(Tn.root+Tn.iv[3])]:[]).slice(0,4),48,72);add(padI,b*BL,{ns:X('drone')?v.slice(0,2):v,d:BL,v:(quiet?.6:.75)*(X('swell')?.35+.65*b/Math.max(1,bars-1):1)});
       if(L===3&&e>.8)add('choir',b*BL,{ns:v,d:BL,v:.55});});
-    if(e>.3||n.role==='intro'){const ai=L===3?(e<.5?'harp':'pluck'):'arp',st=L===3&&e>.8?1:2;chords.forEach((c,b)=>{const Tn=tones(c);for(let r=0;r<BL;r+=st){const k=r/st|0,idx=[0,1,2,1,0,2,1,3][k%8];
+    if(e>.3||n.role==='intro'){const ai=X('ostinato')?'pluck':L===3?(e<.5?'harp':'pluck'):'arp',st=X('ostinato')||(L===3&&e>.8)?1:2;chords.forEach((c,b)=>{const Tn=tones(c);for(let r=0;r<BL;r+=st){const k=r/st|0,idx=[0,1,2,1,0,2,1,3][k%8];
         add(ai,b*BL+r,{n:60+pcl(Tn.root)+[0,Tn.iv[1],Tn.iv[2],12][idx],d:ai==='harp'?6:1.5,v:(n.role==='intro'?.2+.6*(b*BL+r)/len:.6)*(r%4?.75:1)});}});}
     // bass
-    const bStyle=n.role==='build'?'pedal':n.role==='intro'?'none':quiet?'sub':e>.85?'octave':L===3&&e<.6?'walk':e<.45?'pulse':'tracker';
+    const bStyle=n.bassStyle||(n.role==='build'?'pedal':n.role==='intro'?'none':quiet?'sub':e>.85?'octave':L===3&&e<.6?'walk':e<.45?'pulse':'tracker');
     chords.forEach((c,b)=>{const Tn=tones(c),root=M.bassBase-song.key+Tn.root,b0=b*BL;
       if(bStyle==='sub')add('bass',b0,{n:root,d:BL,v:.7});else if(bStyle==='pulse')for(let r=0;r<BL;r+=2)add('bass',b0+r,{n:root,d:1.6,v:r%4?.6:.9});
       else if(bStyle==='octave')for(let r=0;r<BL;r+=2)add('bass',b0+r,{n:root+(r%4===2?12:0),d:1.5,v:1});
@@ -135,7 +147,7 @@ function arrangeFree(song,L){
       else if(bStyle==='walk')for(let q=0;q*4<BL;q++)add('bass',b0+q*4,{n:root+[0,Tn.iv[2],12,Tn.iv[1],7][q%5],d:3.5,v:.85});
       else if(bStyle==='tracker')for(let r=0;r<BL;r++){if(!M.bassT.steps.includes(r%16))continue;add('bass',b0+r,{n:root+(M.bassT.oct.includes(r%16)?12:0),d:M.bassStac?1.5:2,v:.9});}});
     // drums: the groove follows the meter; modes by role and energy
-    const mode=n.role==='build'?'roll':n.role==='intro'?(L===1?'hats':'none'):n.role==='break'?'none':X('halftime')?'half':e<.35?'hats':L===3&&e<.6?'tribal':e>.85&&BL===16?'four':'groove';
+    const mode=n.drums||(n.role==='build'?'roll':n.role==='intro'?(L===1?'hats':'none'):n.role==='break'?'none':X('halftime')?'half':e<.35?'hats':L===3&&e<.6?'tribal':e>.85&&BL===16?'four':'groove');
     const MET={12:{K:[0],S:[4,8],G:[]},14:{K:[0,8],S:[4,11],G:[]},20:{K:[0,12],S:[8,16],G:[]},16:M.D};const D=MET[BL]||M.D;
     for(let b=0;b<bars;b++){const B=b*BL,fill=(b===bars-1)&&mode!=='roll'&&mode!=='none'&&n.role!=='outro';
       for(let s=0;s<BL;s++){const t=B+s,inF=fill&&s>=BL-4;
@@ -155,7 +167,10 @@ function arrangeFree(song,L){
     if(L===3){if(n.role==='build')for(let r=Math.floor(len/2);r<len;r++)add('timp',r,{n:36+pcl(song.key+tr)+degS(iv,4),v:(r-len/2)/(len/2)});
       if(n.role==='climax')for(let b=0;b<bars;b+=4)add('taiko',b*BL,{v:1});
       if(n.role==='outro'){const fin=tones(0);add('piano',len-32,{n:48+pcl(fin.root),d:32,v:.6});add('timp',len-32,{n:36+pcl(song.key),v:.8});}}
+    if(X('hit')){add('impact',0);if(L===3)add('taiko',0,{v:1});add('crash',0,{v:.8});}
+    // explicit layers (era idioms): keep only the instruments whose layer is switched on
+    if(n.layers){const keep=new Set(n.layers);const kept=ev.splice(ev0).filter(q=>keep.has(layerOf(q.i)));ev.push(...kept);}
     R0+=len;}
   ev.sort((a,b)=>a.t-b.t);
-  return{ev,secs,rows:R0,tree,free:true,themes:TH,inst:INST};
+  return{ev,secs,rows:R0};
 }

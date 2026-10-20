@@ -91,7 +91,7 @@ h2{margin:0 0 10px;font:600 11px var(--mono);letter-spacing:.14em;text-transform
 .compare svg{display:block;width:100%}
 .compare text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
 .tablewrap{overflow-x:auto;margin-top:12px}
-table{border-collapse:collapse;width:100%;font:13px var(--mono);font-variant-numeric:tabular-nums;min-width:640px}
+table{border-collapse:collapse;width:100%;font:13px var(--mono);font-variant-numeric:tabular-nums;min-width:820px}
 th,td{text-align:right;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
 th:first-child,td:first-child{text-align:left}
 th{font-weight:500;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
@@ -113,7 +113,7 @@ tr.cur td{color:var(--amber)}
       <button id="newseed" type="button">New seed</button>
       <button id="nextsong" type="button" title="Fade to the next song (400K and up)">Next song</button>
       <button id="full" type="button">Fullscreen</button>
-      <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared" aria-pressed="true">Shared form</button><button type="button" id="mFree" aria-pressed="false">Free form</button></span>
+      <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared" aria-pressed="true">Shared form</button><button type="button" id="mFree" aria-pressed="false">Free form</button><button type="button" id="mEra" aria-pressed="false">Era idioms</button></span>
     </div>
   </header>
 
@@ -140,6 +140,7 @@ tr.cur td{color:var(--amber)}
     <p class="lede" id="cmpLede"></p>
     <svg id="cmp"></svg>
     <div class="tablewrap"><table id="cmpTable"></table></div>
+    <p class="note" style="margin-top:8px">Repeats: share of bars that nearly repeat an earlier bar. Layers: parts playing in an average bar. Phrase: average section length in bars. d′ heard: whether same-theme sections sound alike.</p>
   </section>
 
   <section class="cols" id="cols"></section>
@@ -612,12 +613,22 @@ function arrangeFree(song,L){
   const PR=['','′','″','‴','⁗'];
   for(const n of leaves){const m=n.mat+(n.prime?PR[Math.min(4,n.prime)]:'');
     n.name=n.role==='state'?`theme ${n.mat}`+(n.phrase?` ${n.phrase}`:''):n.role==='ret'?m+(n.phrase?` ${n.phrase}`:''):n.role==='variation'?`variation ${n.var}`+(n.phrase?` ${n.phrase}`:''):n.role;}
-  // ---- 2. render
+  const out=renderPlan(song,L,leaves,TH,INST,R);
+  return Object.assign(out,{tree,free:true,themes:TH,inst:INST});
+}
+
+
+// which layer of a mix an instrument belongs to (used to switch layers in and out, and to count them)
+const LAYER_OF={kick:'kick',taiko:'kick',crash:'kick',hat:'hats',ohat:'hats',shaker:'hats',snare:'snare',clap:'snare',tom:'snare',bass:'bass',arp:'arp',pluck:'arp',harp:'arp',
+  pad:'pad',strings:'pad',choir:'pad',stab:'pad',lead:'lead',leadx:'lead',oboe:'lead',bell:'lead',keys:'lead',piano:'lead',harm:'lead',echo:'lead',counter:'counter',riser:'fx',impact:'fx',sweep:'fx',timp:'fx'};
+const layerOf=i=>LAYER_OF[i]||'fx';
+function renderPlan(song,L,leaves,TH,INST,R){
+  const M=song.mat,minor=song.minor,okIn=(iv,d)=>degS(iv,d+4)-degS(iv,d)===7;
   const ev=[],secs=[];let R0=0;const vl=voicer();
   const add=(i,t,o={})=>{ev.push(Object.assign({i,t:R0+t},o));};
   const par=minor?[0,2,4,5,7,9,11]:[0,2,3,5,7,8,10];
-  for(const n of leaves){const BL=n.meter,bars=n.bars,len=BL*bars,iv=n.xf.includes('modal')?par:song.iv,tr=n.key.tr,e=n.energy,T=TH[n.mat],X=x=>n.xf.includes(x);
-    secs.push({name:n.name,start:R0,len,bars,meter:BL,role:n.role,mat:n.mat,xf:n.xf.slice(),key:tr+(n.key.rel?(minor?3:-3):0),rel:!!n.key.rel,energy:e,sg:n.sg});
+  for(const n of leaves){const ev0=ev.length,BL=n.meter,bars=n.bars,len=BL*bars,iv=n.xf.includes('modal')?par:song.iv,tr=n.key.tr,e=n.energy,T=TH[n.mat],X=x=>n.xf.includes(x);
+    secs.push({name:n.name,start:R0,len,bars,meter:BL,role:n.role,mat:n.mat,xf:n.xf.slice(),layers:n.layers||null,group:n.group||null,key:tr+(n.key.rel?(minor?3:-3):0),rel:!!n.key.rel,energy:e,sg:n.sg});
     const ch=d=>chordInfo(iv,d),tones=(d,t2=tr)=>{const h=ch(d),r=song.key+h.root+t2;return{root:r,pcs:[0,h.third,h.fifth].map(x=>pcl(r+x)),iv:[0,h.third,h.fifth,h.sev]};};
     // harmony per bar
     let prog=n.key.rel?T.rel:X('reharm')||X('sub')?T.alt:T.prog;const hr=X('augment')?2:1;
@@ -640,8 +651,10 @@ function arrangeFree(song,L){
     const quiet=n.role==='intro'||n.role==='outro'||n.role==='break';
     if(!(n.role==='intro'&&L<3)){const mel=phrase(motifs,T.shape,T.start+(n.role==='drop'||n.role==='climax'?2:0),{frag:n.role==='development'||n.role==='bridge'||n.role==='build'?3:0,
         seq:n.role==='development'?-1:n.role==='build'?1:0,inv:X('invert')||(n.role==='outro'&&L===3),thin:X('thin')||quiet||e<.35,retro:X('retro')});
-      let inst=INST[n.mat]||'lead';if(L>=2&&e>.85)inst='leadx';if(L===3&&quiet)inst='piano';
-      play(inst,mel,{oct:(X('octave')?1:0)-(quiet&&L<3?1:0),v:quiet?.75:1});
+      let inst=n.inst||INST[n.mat]||'lead';if(!n.inst){if(L>=2&&e>.85)inst='leadx';if(L===3&&quiet)inst='piano';}
+      if(X('callresp')){const resp=phrase({A:T.motifs.B,B:T.motifs.C||T.motifs.A,C:T.motifs.A},T.shape,T.start-2,{thin:true});
+        play(inst,mel.filter(q=>Math.floor(q.t/BL)%2===0),{oct:X('octave')?1:0});play(n.resp||'keys',resp.filter(q=>Math.floor(q.t/BL)%2===1),{oct:-1,v:.85});}
+      else play(inst,mel,{oct:(X('octave')?1:0)-(quiet&&L<3?1:0),v:quiet?.75:1});
       if(L===1&&e>.45)play('echo',mel,{off:3,v:.35});
       if(X('harmony')||(L>=2&&e>.8))play(L===3?'counter':'harm',mel,{dd:-2,v:.5});
       if(X('canon'))play('counter',mel.filter(q=>q.t+8<len).map(q=>({...q,t:q.t+8})),{dd:-2,oct:-1,v:.6});
@@ -652,12 +665,12 @@ function arrangeFree(song,L){
           if(best!==null){add('counter',t,{n:best,d:4,v:.45});c=best;}}}}
     // accompaniment by energy
     const padI=L===3?'strings':'pad';
-    chords.forEach((c,b)=>{const Tn=tones(c),v=vl(Tn.pcs.concat(e>.7?[pcl(Tn.root+Tn.iv[3])]:[]).slice(0,4),48,72);add(padI,b*BL,{ns:v,d:BL,v:quiet?.6:.75});
+    chords.forEach((c,b)=>{const Tn=tones(c),v=vl(Tn.pcs.concat(e>.7?[pcl(Tn.root+Tn.iv[3])]:[]).slice(0,4),48,72);add(padI,b*BL,{ns:X('drone')?v.slice(0,2):v,d:BL,v:(quiet?.6:.75)*(X('swell')?.35+.65*b/Math.max(1,bars-1):1)});
       if(L===3&&e>.8)add('choir',b*BL,{ns:v,d:BL,v:.55});});
-    if(e>.3||n.role==='intro'){const ai=L===3?(e<.5?'harp':'pluck'):'arp',st=L===3&&e>.8?1:2;chords.forEach((c,b)=>{const Tn=tones(c);for(let r=0;r<BL;r+=st){const k=r/st|0,idx=[0,1,2,1,0,2,1,3][k%8];
+    if(e>.3||n.role==='intro'){const ai=X('ostinato')?'pluck':L===3?(e<.5?'harp':'pluck'):'arp',st=X('ostinato')||(L===3&&e>.8)?1:2;chords.forEach((c,b)=>{const Tn=tones(c);for(let r=0;r<BL;r+=st){const k=r/st|0,idx=[0,1,2,1,0,2,1,3][k%8];
         add(ai,b*BL+r,{n:60+pcl(Tn.root)+[0,Tn.iv[1],Tn.iv[2],12][idx],d:ai==='harp'?6:1.5,v:(n.role==='intro'?.2+.6*(b*BL+r)/len:.6)*(r%4?.75:1)});}});}
     // bass
-    const bStyle=n.role==='build'?'pedal':n.role==='intro'?'none':quiet?'sub':e>.85?'octave':L===3&&e<.6?'walk':e<.45?'pulse':'tracker';
+    const bStyle=n.bassStyle||(n.role==='build'?'pedal':n.role==='intro'?'none':quiet?'sub':e>.85?'octave':L===3&&e<.6?'walk':e<.45?'pulse':'tracker');
     chords.forEach((c,b)=>{const Tn=tones(c),root=M.bassBase-song.key+Tn.root,b0=b*BL;
       if(bStyle==='sub')add('bass',b0,{n:root,d:BL,v:.7});else if(bStyle==='pulse')for(let r=0;r<BL;r+=2)add('bass',b0+r,{n:root,d:1.6,v:r%4?.6:.9});
       else if(bStyle==='octave')for(let r=0;r<BL;r+=2)add('bass',b0+r,{n:root+(r%4===2?12:0),d:1.5,v:1});
@@ -665,7 +678,7 @@ function arrangeFree(song,L){
       else if(bStyle==='walk')for(let q=0;q*4<BL;q++)add('bass',b0+q*4,{n:root+[0,Tn.iv[2],12,Tn.iv[1],7][q%5],d:3.5,v:.85});
       else if(bStyle==='tracker')for(let r=0;r<BL;r++){if(!M.bassT.steps.includes(r%16))continue;add('bass',b0+r,{n:root+(M.bassT.oct.includes(r%16)?12:0),d:M.bassStac?1.5:2,v:.9});}});
     // drums: the groove follows the meter; modes by role and energy
-    const mode=n.role==='build'?'roll':n.role==='intro'?(L===1?'hats':'none'):n.role==='break'?'none':X('halftime')?'half':e<.35?'hats':L===3&&e<.6?'tribal':e>.85&&BL===16?'four':'groove';
+    const mode=n.drums||(n.role==='build'?'roll':n.role==='intro'?(L===1?'hats':'none'):n.role==='break'?'none':X('halftime')?'half':e<.35?'hats':L===3&&e<.6?'tribal':e>.85&&BL===16?'four':'groove');
     const MET={12:{K:[0],S:[4,8],G:[]},14:{K:[0,8],S:[4,11],G:[]},20:{K:[0,12],S:[8,16],G:[]},16:M.D};const D=MET[BL]||M.D;
     for(let b=0;b<bars;b++){const B=b*BL,fill=(b===bars-1)&&mode!=='roll'&&mode!=='none'&&n.role!=='outro';
       for(let s=0;s<BL;s++){const t=B+s,inF=fill&&s>=BL-4;
@@ -685,9 +698,80 @@ function arrangeFree(song,L){
     if(L===3){if(n.role==='build')for(let r=Math.floor(len/2);r<len;r++)add('timp',r,{n:36+pcl(song.key+tr)+degS(iv,4),v:(r-len/2)/(len/2)});
       if(n.role==='climax')for(let b=0;b<bars;b+=4)add('taiko',b*BL,{v:1});
       if(n.role==='outro'){const fin=tones(0);add('piano',len-32,{n:48+pcl(fin.root),d:32,v:.6});add('timp',len-32,{n:36+pcl(song.key),v:.8});}}
+    if(X('hit')){add('impact',0);if(L===3)add('taiko',0,{v:1});add('crash',0,{v:.8});}
+    // explicit layers (era idioms): keep only the instruments whose layer is switched on
+    if(n.layers){const keep=new Set(n.layers);const kept=ev.splice(ev0).filter(q=>keep.has(layerOf(q.i)));ev.push(...kept);}
     R0+=len;}
   ev.sort((a,b)=>a.t-b.t);
-  return{ev,secs,rows:R0,tree,free:true,themes:TH,inst:INST};
+  return{ev,secs,rows:R0};
+}
+
+/* Era idioms: the same allowance as Free form, but each tier builds its structure from the habits of its own era of demoscene music.
+     400K "2003"  trance and progressive: the song is built by layering. One part enters or leaves every 8 bars; a breakdown strips
+                  the drums away, a snare roll builds, the climax brings everything back, the outro takes it apart again.
+     4M   "2012"  EDM: build and drop. Hooks as call and response, a pre-drop gap, a big-room or half-time drop, and a second drop
+                  that either switches style or lifts the key.
+     40M  "2026"  cinematic hybrid scoring: acts instead of verses. Leitmotifs change mood with the story (solemn, darker, threatening,
+                  heroic, remembered), ostinatos and drones carry tension, hits mark the cuts, two motifs meet at the climax. */
+const ERA_LABEL={1:'2003 trance and progressive',2:'2012 EDM',3:'2026 cinematic scoring'};
+function arrangeEra(song,L){
+  const R=Rng(hashSeed(song.seed,700+L)),M=song.mat,minor=song.minor,up=M.modUp||2;
+  const okIn=(iv,d)=>degS(iv,d+4)-degS(iv,d)===7,pool=(minor?PROG_MIN:PROG_MAJ).filter(p=>p.every(d=>okIn(song.iv,d)));
+  const mkTheme=(motifs,shape,prog,start)=>{let alt=pool.filter(p=>p.join()!==prog.join());alt=alt.length?R.pick(alt):prog;
+    const rel=prog.map(d=>{const r=(d+(minor?2:5))%7;return okIn(song.iv,r)?r:d;});return{motifs,shape,prog,start,alt,rel};};
+  const TH={A:mkTheme({A:M.m[0],B:M.m[1],C:varyMotif(R,M.m[0])},M.sh1,M.P1,M.start1),B:mkTheme({A:M.m[2],B:M.m[3],C:varyMotif(R,M.m[2])},M.sh2,M.P2,M.start2)};
+  if(L===3){const a=makeMotif(R),b=makeMotif(R);TH.C=mkTheme({A:a,B:b,C:varyMotif(R,a)},R.pick(['AAAB','ABAB']),R.pick(pool.length?pool:[M.P1]),R.pick([0,2]));}
+  const INST=L===1?{A:'lead',B:'harm'}:L===2?{A:'lead',B:'keys'}:{A:'oboe',B:'bell',C:'piano'};
+  const tree={label:'piece',kids:[]};let grp=null,sg=0;
+  const group=label=>{grp={label,kids:[]};tree.kids.push(grp);sg++;};
+  const leaf=o=>{const n=Object.assign({role:'state',mat:'A',xf:[],key:{tr:0},bars:8,meter:16,energy:.5,sg},o);if(n.layers)n.energy=o.energy??Math.min(1,.12+.09*n.layers.length);grp.kids.push(n);return n;};
+  const ALL=['kick','hats','snare','bass','arp','pad','lead','counter','fx'];
+  if(L===1){
+    // ---- 2003: a layering arc, one change every 8 bars
+    const intro=R.pick([[['kick'],['kick','hats']],[['hats'],['hats','kick']],[['kick','hats'],['kick','hats','bass']]]);
+    group('Intro');intro.forEach((ly,i)=>leaf({role:'intro',name:i?`intro + ${ly[ly.length-1]}`:`intro: ${ly.join(', ')}`,layers:ly,drums:'four',bassStyle:'pulse'}));
+    const grow=R.chance(.5)?['bass','arp']:['arp','bass'];let cur=intro[intro.length-1].slice();
+    group('Groove');for(const g of grow){if(cur.includes(g))continue;cur=cur.concat(g);leaf({role:'bridge',name:`groove + ${g}`,layers:cur.slice(),drums:'four',bassStyle:'pulse'});}
+    if(!cur.includes('snare')){cur=cur.concat('snare');}
+    group('Theme');leaf({name:'theme A',layers:cur.concat('lead'),drums:'four',bassStyle:'pulse'});leaf({name:'theme A + pad',layers:cur.concat('lead','pad'),drums:'four',bassStyle:'pulse',xf:['vary']});
+    group('Breakdown');const bm=R.chance(.5)?'B':'A';leaf({role:'break',mat:bm,name:'breakdown: pad',layers:['pad','fx'],drums:'none',energy:.15});
+    leaf({role:'break',mat:bm,name:`breakdown + theme ${bm}`,layers:['pad','lead','fx'],drums:'none',xf:['augment'],energy:.25});
+    group('Build');leaf({role:'build',name:'build: snare roll',layers:['snare','pad','arp','fx','bass'],energy:.7});
+    const cb=R.pick([16,16,32]);group('Climax');for(let b=0;b<cb;b+=8)leaf({role:'drop',name:b?`climax ${b/8+1}, in thirds`:'climax',layers:ALL.slice(),drums:'four',bassStyle:'octave',xf:b?['octave','harmony']:['octave'],energy:1});
+    group('Outro');let out=['kick','hats','snare','bass','arp','pad'];for(const rm of ['pad','arp','bass']){out=out.filter(x=>x!==rm);leaf({role:'outro',name:`outro − ${rm}`,layers:out.slice(),drums:'four',bassStyle:'pulse'});}
+  }
+  else if(L===2){
+    // ---- 2012: build and drop
+    const style=R.pick(['four','half']),other=style==='four'?'half':'four',switchUp=R.chance(.55);
+    const dropLeaf=(name,st,o={})=>leaf(Object.assign({role:'drop',name,drums:st,bassStyle:st==='half'?'sub':'octave',energy:1,layers:ALL.slice(),xf:[]},o));
+    group('Intro');leaf({role:'intro',name:'intro',layers:['pad','arp','hats','fx'],drums:'hats',energy:.2});
+    group('Verse');leaf({name:'verse: call',layers:['kick','hats','bass','pad','lead'],drums:'groove',bassStyle:'pulse',xf:['callresp','thin'],energy:.5});
+    leaf({name:'verse: call and answer',layers:['kick','hats','snare','bass','pad','lead','arp'],drums:'groove',bassStyle:'pulse',xf:['callresp'],energy:.6});
+    group('Build');leaf({role:'build',name:'build',layers:['snare','pad','arp','fx','bass','lead'],xf:['fragment']});
+    group('Drop');dropLeaf(style==='half'?'drop (half-time)':'drop',style);dropLeaf('drop, answered',style,{xf:['callresp','harmony']});
+    group('Break');leaf({role:'break',mat:'B',name:'break',layers:['pad','lead','fx'],drums:'none',xf:['augment'],energy:.2,bars:R.pick([8,16])});
+    group('Build 2');leaf({role:'build',name:'build 2',layers:['snare','pad','arp','fx','bass','lead','kick'],xf:['fragment']});
+    group('Drop 2');if(switchUp){dropLeaf(other==='half'?'switch-up (half-time)':'switch-up (four)',other);dropLeaf('switch-up, answered',other,{xf:['callresp','harmony']});}
+    else{dropLeaf('drop 2, lifted',style,{key:{tr:up},xf:['transpose','octave']});dropLeaf('drop 2, in thirds',style,{key:{tr:up},xf:['transpose','harmony']});}
+    group('Outro');leaf({role:'outro',name:'outro',layers:['pad','arp','hats','kick','fx'],drums:'groove',energy:.3});
+  }
+  else{
+    // ---- 2026: acts and leitmotifs
+    const len=()=>R.pick([8,10,12,12,16]),odd=R.chance(.6)?R.pick([12,14,20]):16,bFirst=R.chance(.3);
+    group('Opening');leaf({role:'intro',name:'opening: drone',inst:'piano',layers:['pad','lead','fx'],xf:['drone','swell','augment'],energy:.15,bars:len()});
+    group('Act I');const stA=leaf({name:'A · statement',inst:'oboe',bars:len(),energy:.6,layers:['pad','arp','lead','bass','counter']});
+    const stB=leaf({mat:'B',name:'B · introduced',inst:'bell',key:{tr:0,rel:true},xf:['hit'],bars:len(),energy:.5,layers:['pad','arp','lead','bass','hats']});
+    if(bFirst){grp.kids.reverse();}
+    group('Act II');leaf({name:'A · darker',inst:'oboe',xf:['modal','ostinato'],drums:'tribal',bars:len(),energy:.55,layers:['pad','arp','lead','kick','hats','bass']});
+    leaf({mat:'C',name:'C · threat',inst:'piano',xf:['invert','ostinato'],drums:'tribal',meter:odd,bars:len(),energy:.65,layers:['arp','lead','kick','hats','bass','pad']});
+    leaf({role:'build',name:'pursuit',xf:['ostinato','fragment'],bars:8,energy:.8,layers:['arp','snare','kick','pad','fx','lead','bass']});
+    group('Act III');leaf({role:'climax',name:'A · heroic',inst:'leadx',xf:['hit','octave','harmony'],drums:'groove',bars:R.pick([12,16]),energy:1,layers:ALL.slice()});
+    if(R.chance(.7))leaf({role:'climax',name:'A meets B',xf:['combine'],drums:'half',bars:len(),energy:.9,layers:ALL.slice()});
+    group('Epilogue');leaf({role:'outro',name:'A · remembered',inst:'piano',xf:['augment','drone','modal'],bars:8,energy:.2,layers:['pad','lead','fx']});
+  }
+  const leaves=[];for(const g of tree.kids)for(const k of g.kids){k.group=g.label;leaves.push(k);}
+  const out=renderPlan(song,L,leaves,TH,INST,R);
+  return Object.assign(out,{tree,era:true,themes:TH,inst:INST});
 }
 
 </script>
@@ -712,16 +796,17 @@ function trackerEvents(song){const ev=[];let R0=0;for(const s of song.sections){
   for(const c of [2,3,4,5]){let open=null;for(let r=0;r<ROWS;r++){const n=P[r][c].n;if(n===null)continue;if(open){open.d=R0+r-open.t;open=null;}if(n>0){open={i:c===4?'lead':c===2?'bass':c===3?'arp':'pad',t:R0+r,n,d:1};ev.push(open);}}if(open)open.d=R0+ROWS-open.t;}
   for(let r=0;r<ROWS;r++)for(const c of [0,1])if(P[r][c].n>0)ev.push({i:'kick',t:R0+r});R0+=ROWS;}return ev;}
 const sharedThemes=song=>{const M=song.mat;return{A:{motifs:{A:M.m[0],B:M.m[1]},shape:M.sh1,prog:M.P1,start:M.start1},B:{motifs:{A:M.m[2],B:M.m[3]},shape:M.sh2,prog:M.P2,start:M.start2}};};
-function composeAll(sd,free){const song=genSong(sd),res=[];
+function composeAll(sd,mode){if(mode===true)mode='free';if(!mode)mode='shared';const free=mode!=='shared';const song=genSong(sd),res=[];
   const k4=[['intro','intro',.15],['groove','build',.4],['A','A',.7],['A','A',.7],['break','break',.25],['B','B',.7],['B','B',.7],['groove','build',.5],['A lift','A',.85],['outro','outro',.3]];
   res.push({secs:k4.map(([n,m,e],i)=>({name:n,start:i*64,len:64,bars:4,meter:16,role:/^[AB]/.test(m)?(i===2||i===5?'state':'ret'):m,mat:/^[AB]/.test(m)?m:null,xf:n==='A lift'?['transpose']:[],key:n==='A lift'?2:0,energy:e})),rows:640,levels:1,ev:null,len:null});
   {const secs=sharedSecs(song.sections.map(s=>[s.name,ROWS]),song,0);res.push({secs,rows:song.sections.length*ROWS,levels:1,ev:trackerEvents(song),len:timeOf(song,song.sections.length*ROWS),themes:sharedThemes(song),inst:{A:'lead',B:'lead'}});}
-  for(const L of [1,2,3]){const sc=free?arrangeFree(song,L):arrange(song,L);
+  for(const L of [1,2,3]){const sc=mode==='era'?arrangeEra(song,L):mode==='free'?arrangeFree(song,L):arrange(song,L);
     const secs=free?sc.secs.map(x=>Object.assign({},x,{tr:x.rel?x.key-(song.minor?3:-3):x.key,mat:/intro|outro|build|bridge/.test(x.role)?null:x.mat})):sharedSecs(sc.secs.map(x=>[x.name,x.len]),song,L);
-    const levels=free?(L===1?1:sc.tree.kids.some(g=>g.kids.some(k=>k.kids))?3:2):1;
+    const levels=free?(sc.tree.kids.some(g=>g.kids.some(k=>k.kids))?3:sc.tree.kids.some(g=>g.label)?2:1):1;
     res.push({secs,rows:sc.rows,levels,ev:sc.ev,tree:free?sc.tree:null,len:timeOf(song,sc.rows),themes:free?sc.themes:sharedThemes(song),inst:free?sc.inst:[null,{A:'lead',B:'lead'},{A:'lead',B:'keys'},{A:'oboe',B:'bell'}][L]});}
   for(const r of res)r.sim=r.ev?similarity(r,song):null;
-  return{song,res,free};}
+  for(const r of res)if(r.sim)r.idiom=idiomStats(r);
+  return{song,res,free,mode};}
 
 // bar-by-bar similarity of what is actually played, in the terms a listener recognises a tune by:
 // melody intervals and scale degrees (so a transposed return still matches), melody rhythm, harmony as scale degrees, drum density
@@ -800,10 +885,19 @@ function perBar(r){const sim=r.sim;if(!sim)return null;const {bars}=sim,N=bars.l
   for(const e of r.ev){if(e.t<0||e.t>=r.rows||e.i==='sweep')continue;const k=idx(e.t),c=e.ns?e.ns.length:1;notes[k]+=c;(inst[e.i]||(inst[e.i]=new Float32Array(N)))[k]+=c;}
   return{notes,inst};}
 const progName=(song,prog)=>prog.map(d=>{const c=chordInfo(song.iv,d),rn=['I','II','III','IV','V','VI','VII'][d];return(c.third===3?rn.toLowerCase():rn)+(c.fifth===6?'°':'');}).join('–');
+
+// ---- era signatures: how many layers play, how often they change, how long phrases run, how much is repeated
+function idiomStats(r){const {bars,S,N}=r.sim,lay=bars.map(()=>new Set()),idx=t=>{let lo=0,hi=N-1;while(lo<hi){const m=(lo+hi+1)>>1;if(bars[m].t0<=t)lo=m;else hi=m-1;}return lo;};
+  for(const e of r.ev){if(e.t<0||e.t>=r.rows)continue;const l=layerOf(e.i);if(l!=='fx')lay[idx(e.t)].add(l);}
+  const layers=lay.map(x=>x.size);let changes=0;for(let i=1;i<N;i++)if(layers[i]!==layers[i-1])changes++;
+  // a bar "repeats" if some earlier bar is nearly the same (similarity 0.9 or more)
+  const rep=new Uint8Array(N);for(let j=1;j<N;j++)for(let i=0;i<j;i++)if(S[i*N+j]>=.9){rep[j]=1;break;}
+  const reps=rep.reduce((a,b)=>a+b,0)/N,phr=r.secs.map(x=>x.bars),avgPhrase=phr.reduce((a,b)=>a+b,0)/phr.length;
+  return{layers,changes,rep,reps,avgPhrase,maxLayers:Math.max(...layers),meanLayers:layers.reduce((a,b)=>a+b,0)/N};}
 </script>
 <script>
 (()=>{
-const SIZES={"4k": 4039, "40k": 32358, "400k": 80725, "4m": 75768, "40m": 79730};
+const SIZES={"4k": 4039, "40k": 32358, "400k": 87643, "4m": 82686, "40m": 86648};
 const KB=1024,MB=1048576;
 const T=[
  {id:'4k',label:'4K',ceil:4*KB,era:'1995',rule:'file',L:-1,
@@ -811,21 +905,25 @@ const T=[
   sound:'Six voices rendered once into a single mono buffer at start: sine kick, noise snare and hats, saw bass, square arpeggio, triangle lead, one feedback echo, then crushed to 8 bits.',
   pics:'320×200 software pixels: plasma, an XOR tunnel, moiré rings, metaballs, a starfield, voxel flight and a planet with a passing fleet, with a lens bouncing over the plasmas. The file is compressed JavaScript that unpacks itself.'},
  {id:'40k',label:'40K',ceil:40*KB,era:'1997',rule:'file',L:0,
-  free:'Fixed in both modes: the 40K file plays its tracker module as written. It is the baseline the free forms grow from.',
+  free:'Fixed in every mode: the 40K file plays its tracker module as written. It is the baseline the free forms grow from.',
+  era:'Fixed in every mode, and already its era’s idiom: a 1997 tracker module, a handful of patterns reused from an order list, channels switched in and out to arrange.',
   comp:'The shared composer writes a tracker module: 64-row patterns on six channels, a seeded mode and progression, motifs that are varied, inverted and sequenced, and a verse–chorus form.',
   sound:'A small tracker engine plays the six channels through synthesized instruments, with per-note volume commands and an echo channel trailing the lead.',
   pics:'19 software-rendered scenes at 320×200: voxel landscapes, glenz vectors, metaballs, rotozoom, fire, twisters and a flying fleet. It boots from a DOS prompt.'},
  {id:'400k',label:'400K',ceil:400*KB,era:'2003',rule:'file',L:1,
+  era:'Era idioms, 2003 trance and progressive: the form is built by layering. One part enters or leaves every 8 bars; a breakdown strips the drums, a snare roll builds, the climax brings everything back and the outro takes it apart again.',
   free:'Free form, one level: a string of 8- and 16-bar sections over two themes. A return may be varied, lifted an octave or thinned, and nothing more.',
   comp:'The same song, arranged. Every section plays twice and the repeat is varied: passing tones into leaps, an octave lift at the phrase end, a busier bass and a new fill. Voice-led pads and real arpeggios join.',
   sound:'A softsynth: detuned subtractive voices, synthesized drums, tempo-synced stereo delay and a generated reverb.',
   pics:'Hardware 3D at 800×600: textured tunnels, ship fleets over a planet, a city at night, particles and terrain, with glow and feedback post effects.'},
  {id:'4m',label:'4M',ceil:4*MB,era:'2012',rule:'mem',L:2,
+  era:'Era idioms, 2012 EDM: verse hooks as call and answer, a build with a gap before the drop, a big-room or half-time drop, and a second drop that switches style or lifts the key.',
   free:'Free form, two levels: parts made of sections, three themes placed in related keys, builds and drops. A return may carry two of nine transformations: varied, octave, thinned, transposed, fragmented, augmented, reharmonised, half-time or in thirds.',
   comp:'Recomposed from the song’s raw material as a big-room track: intro, verse, build, drop, break, second build, second drop, outro. Builds rise with snare rolls and risers; drops land on an impact.',
   sound:'Supersaws, sidechain ducking from the kick, claps and shakers, white-noise risers, filter sweeps and a longer generated hall.',
   pics:'Every scene is a raymarched distance field: terrain with soft shadows, an Apollonian fractal, a reflective corridor, metaballs, a pulsing block city and a ringed tunnel. The form picks the scene.'},
  {id:'40m',label:'40M',ceil:40*MB,era:'2026',rule:'mem',L:3,
+  era:'Era idioms, 2026 cinematic scoring: acts instead of verses. Leitmotifs change mood with the story (statement, darker, threat, heroic, remembered), ostinatos and drones carry tension, hits mark the cuts, and two motifs meet at the climax.',
   free:'Free form, three levels: movements, sections and phrases of 4 to 16 bars, five themes on a tonal plan, odd meters (3/4, 7/8, 5/4), and returns with up to three of fourteen transformations, adding inversion, retrograde, diminution, canon and modal mixture. Themes can sound together in counterpoint.',
   comp:'Recomposed again in a sonata-like form: prelude, theme A, theme B in the relative key, a development that walks the circle of fifths with a canon, a build, a climax and a coda that ends on a Picardy third. A counter-melody moves against the tune.',
   sound:'Physically modelled instruments built at start: Karplus-Strong plucks and harp, a modal piano with inharmonic partials, modal taiko and timpani, plus strings, choir and oboe in a long hall.',
@@ -834,9 +932,10 @@ const T=[
 const fmt=b=>b>=MB?(b/MB).toFixed(b>=10*MB?1:2)+' MB':b>=KB?(b/KB).toFixed(b>=10*KB?1:2)+' KB':b+' B';
 const X=b=>Math.max(0,Math.min(1,(Math.log10(b)-3)/(Math.log10(100*MB)-3)))*100;
 const $=id=>document.getElementById(id);
-let tier=1,seed=0,started=false,live={},form=null,free=false;
-try{const k=localStorage.getItem('oom-tier');if(k!==null&&T[+k])tier=+k;free=localStorage.getItem('oom-free')==='1';}catch(e){}
-const hm=/^#?([0-9a-fA-F]{1,8})(-free)?$/.exec(location.hash||'');seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;if(hm)free=!!hm[2];
+let tier=1,seed=0,started=false,live={},form=null,mode='shared';
+try{const k=localStorage.getItem('oom-tier');if(k!==null&&T[+k])tier=+k;const mm=localStorage.getItem('oom-mode');if(['shared','free','era'].includes(mm))mode=mm;}catch(e){}
+const hm=/^#?([0-9a-fA-F]{1,8})(-free|-era)?$/.exec(location.hash||'');seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;if(hm)mode=hm[2]?hm[2].slice(1):'shared';
+const sfx=()=>mode==='shared'?'':'-'+mode;
 
 // ruler
 for(const [b,l] of [[KB,'1 KB'],[10*KB,'10 KB'],[100*KB,'100 KB'],[MB,'1 MB'],[10*MB,'10 MB'],[100*MB,'100 MB']]){const d=document.createElement('div');d.className='tick';d.style.left=X(b)+'%';d.innerHTML='<span>'+l+'</span>';$('axis').appendChild(d);}
@@ -865,13 +964,15 @@ function drawCompare(){const svg=$('cmp');svg.innerHTML='';const W=Math.max(300,
       if(x.mat){const p=firstOf[x.mat];if(p&&x.role!=='state'){const a=xs(p.start+p.len/2),b=xs(x.start+x.len/2),h=Math.min(9,(b-a)*.2);svg.append(svgEl('path',{d:`M${a} ${y+5}C${a} ${y+5-h*1.3} ${b} ${y+5-h*1.3} ${b} ${y+5}`,stroke:MATCOL[x.mat],'stroke-opacity':.7,fill:'none'}));}firstOf[x.mat]=x;}});});
   svg.append(svgEl('text',{x:LW,y:H-2},'0'));svg.append(svgEl('text',{x:W,y:H-2,'text-anchor':'end'},`${Math.round(maxR/16)} bars`));
   const rows=form.res.map((r,ti)=>{const st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'–';
-    return `<tr class="${ti===tier?'cur':''}"><td>${T[ti].label}</td><td>${st.secs}</td><td>${st.levels}</td><td>${st.themes}</td><td>${st.xf}</td><td>${st.keys}</td><td>${st.meters}</td><td>${st.bars}</td><td>${m}</td><td>${r.sim&&r.sim.dp!=null?r.sim.dp.toFixed(2):'–'}</td></tr>`;});
-  $('cmpTable').innerHTML='<thead><tr><th>Tier</th><th>Sections</th><th>Levels</th><th>Themes</th><th>Transforms</th><th>Keys</th><th>Meters</th><th>Bars</th><th>Length</th><th>d′ heard</th></tr></thead><tbody>'+rows.join('')+'</tbody>';
-  $('cmpLede').textContent=form.free?'Free form: each tier writes its own structure from the same material, using as much as its allowance permits. The last column asks whether that structure is audible: d′ compares how alike bars of the same theme sound against bars of different themes.':
+    return `<tr class="${ti===tier?'cur':''}"><td>${T[ti].label}</td><td>${st.secs}</td><td>${st.levels}</td><td>${st.themes}</td><td>${st.xf}</td><td>${st.keys}</td><td>${st.meters}</td><td>${st.bars}</td><td>${m}</td><td>${r.idiom?Math.round(r.idiom.reps*100)+'%':'–'}</td><td>${r.idiom?r.idiom.meanLayers.toFixed(1):'–'}</td><td>${r.idiom?r.idiom.avgPhrase.toFixed(1):'–'}</td><td>${r.sim&&r.sim.dp!=null?r.sim.dp.toFixed(2):'–'}</td></tr>`;});
+  $('cmpTable').innerHTML='<thead><tr><th>Tier</th><th>Sections</th><th>Levels</th><th>Themes</th><th>Transforms</th><th>Keys</th><th>Meters</th><th>Bars</th><th>Length</th><th>Repeats</th><th>Layers</th><th>Phrase</th><th>d′ heard</th></tr></thead><tbody>'+rows.join('')+'</tbody>';
+  $('cmpLede').textContent={free:'Free form: each tier writes its own structure from the same material, using as much as its allowance permits. d′ asks whether that structure is audible; Repeats, Layers and Phrase show its idiom.',
+    era:'Era idioms: each tier writes its form in the habits of its own era of demoscene music: tracker reuse, trance layering, EDM build and drop, cinematic acts. Repeats, Layers and Phrase are the signatures to compare; d′ asks whether the form is audible.',
+    shared:'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form or Era idioms to let each tier write its own structure.'}[form.mode];
     'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form to let each tier write its own structure.';}
 
-function drawForm(){$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${free?'-free':''}-${['40k','40k','400k','4m','40m'][tier]}`;const r=form.res[tier],song=form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
-  $('formTitle').textContent=`Form at ${T[tier].label}`+(tier>=2?(form.free?' · free':' · shared'):'');$('detail').textContent='Hover or tap a section for details.';
+function drawForm(){$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${sfx()}-${['40k','40k','400k','4m','40m'][tier]}`;const r=form.res[tier],song=form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
+  $('formTitle').textContent=`Form at ${T[tier].label}`+(tier>=2?' · '+{shared:'shared form',free:'free form',era:'era idioms'}[mode]:'');$('detail').textContent='Hover or tap a section for details.';
   drawDiagram();drawSSM();drawCompare();
   let ev=0;if(r.ev)for(const e of r.ev)ev+=e.ns?e.ns.length:1;
   $('facts').innerHTML=tier===0?`<span><b>${r.secs.length}</b> blocks</span><span><b>${st.bars}</b> bars</span><span><b>6</b> voices</span><span>its own key and tempo</span>`:
@@ -883,16 +984,16 @@ function drawMeter(){const t=T[tier],code=SIZES[t.id]||0,gen=t.rule==='mem'&&liv
   $('readout').innerHTML=`<span class="rule">${rule}</span><span><i class="sw" style="background:var(--fg)"></i>file <b>${fmt(code)}</b>${t.rule==='file'?` · ${(code/t.ceil*100).toFixed(1)}% of the limit`:''}</span>`+
     (t.rule==='mem'?`<span><i class="sw" style="background:repeating-linear-gradient(90deg,var(--amber) 0 3px,transparent 3px 5px)"></i>generated <b>${gen?fmt(gen):'starts with the demo'}</b>${gen?` · ${(gen/t.ceil*100).toFixed(1)}% of the limit`:''}</span>`:'');}
 
-function drawCols(){const t=T[tier];$('cols').innerHTML=`<div><h3>Composition</h3><p>${free&&t.free?t.free:t.comp}</p></div><div><h3>Sound</h3><p>${t.sound}</p></div><div><h3>Pictures</h3><p>${t.pics}</p></div>`;
+function drawCols(){const t=T[tier];$('cols').innerHTML=`<div><h3>Composition</h3><p>${mode!=='shared'&&t[mode]?t[mode]:t.comp}</p></div><div><h3>Sound</h3><p>${t.sound}</p></div><div><h3>Pictures</h3><p>${t.pics}</p></div>`;
   $('note').textContent=t.rule==='mem'?'At 4M and 40M the code is free; the meter counts every texture, render target, mesh, sample bank and impulse response the demo builds while it runs.':tier===0?'The 4K tier has room only for its own tiny composer, so its song differs from the others. Every tier from 40K up starts from the same composition for a given seed.':'From 40K up, the seed produces the same composition; each tier then arranges, voices and pictures it as far as its limit allows.';}
 
-function load(){const t=T[tier],f=$('frame');live={};const nf=f.cloneNode();nf.src=`tiers/${t.id}.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${free&&t.L>0?'-free':''}`;f.replaceWith(nf);
+function load(){const t=T[tier],f=$('frame');live={};const nf=f.cloneNode();nf.src=`tiers/${t.id}.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${t.L>0?sfx():''}`;f.replaceWith(nf);
   nf.addEventListener('load',()=>{try{nf.contentWindow.postMessage({demoseedCmd:'visible',v:stageShown},'*');}catch(e){}if(started&&t.L>0)try{nf.contentWindow.postMessage({demoseedCmd:'start'},'*');}catch(e){}});
   T.forEach((x,i)=>x.el.setAttribute('aria-pressed',i===tier));$('seed').value=seed.toString(16).toUpperCase().padStart(8,'0');
   $('nowplaying').innerHTML=t.L>0&&started?'<b>Starting…</b>':'<b>Click the screen to start.</b> '+(t.id==='40k'?'It boots from DOS.':'');
-  $('nextsong').disabled=t.L<1;try{history.replaceState(null,'','#'+$('seed').value+(free?'-free':''));}catch(e){}
-  $('mShared').setAttribute('aria-pressed',!free);$('mFree').setAttribute('aria-pressed',free);
-  $('sub').textContent=free?'One seed, five size limits, thirty years of demo scene. Same material at every tier; each tier writes its own form.':'One seed, five size limits, thirty years of demo scene. Same song at every tier from 40K up.';
+  $('nextsong').disabled=t.L<1;try{history.replaceState(null,'','#'+$('seed').value+sfx());}catch(e){}
+  $('mShared').setAttribute('aria-pressed',mode==='shared');$('mFree').setAttribute('aria-pressed',mode==='free');$('mEra').setAttribute('aria-pressed',mode==='era');
+  $('sub').textContent='One seed, five size limits, thirty years of demo scene. '+{shared:'Same song at every tier from 40K up.',free:'Same material at every tier; each tier writes its own form.',era:'Same material at every tier; each tier writes its form in its own era’s idiom.'}[mode];
   drawForm();drawMeter();drawCols();}
 // when the stage scrolls out of view the demo stops drawing, so scrolling and reading never starve the music
 // visuals draw only while the whole stage is in view and the page is still; any scroll away from it freezes the picture
@@ -901,11 +1002,11 @@ const sendVis=()=>{const v=inView&&!scrolling;if(v===stageShown)return;stageShow
 try{new IntersectionObserver(es=>{for(const e of es)inView=e.intersectionRect.height>=0.6*Math.min(e.boundingClientRect.height,innerHeight);sendVis();},{threshold:[0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1]}).observe($('stage'));}catch(e){}
 addEventListener('scroll',()=>{clearTimeout(scrolling);scrolling=setTimeout(()=>{scrolling=0;sendVis();},250);sendVis();},{passive:true});
 function pick(i){tier=i;try{localStorage.setItem('oom-tier',i);}catch(e){}load();}
-function setSeed(s){seed=s>>>0;form=composeAll(seed,free);load();}
-function setFree(f){free=f;try{localStorage.setItem('oom-free',f?'1':'0');}catch(e){}form=composeAll(seed,free);load();}
+function setSeed(s){seed=s>>>0;form=composeAll(seed,mode);load();}
+function setMode(m){mode=m;try{localStorage.setItem('oom-mode',m);}catch(e){}form=composeAll(seed,mode);load();}
 
 addEventListener('message',e=>{const d=e.data;if(!d||!d.demoseed)return;live=d;if(d.state==='play'||d.state==='fadeout')started=true;
-  if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;form=composeAll(seed,free);$('seed').value=d.seed;drawForm();try{history.replaceState(null,'','#'+d.seed+(free?'-free':''));}catch(_){}}
+  if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;form=composeAll(seed,mode);$('seed').value=d.seed;drawForm();try{history.replaceState(null,'','#'+d.seed+sfx());}catch(_){}}
   const mute=d.sound==='suspended';$('stage').classList.toggle('mute',mute);
   if(mute)$('nowplaying').innerHTML='<b class="warn">Sound is off. Click the screen to turn it on.</b>';else if(d.title)$('nowplaying').innerHTML=`<b>${d.title}</b> by ${d.group} · seed ${d.seed}`;
   if(playX&&d.pos!=null&&d.rows&&d.state==='play'&&d.tier===T[tier].label){const W=+$('diag').getAttribute('viewBox').split(' ')[2],x=Math.min(1,d.pos/d.rows)*W;playX.setAttribute('x1',x);playX.setAttribute('x2',x);playX.setAttribute('opacity',1);}
@@ -913,7 +1014,7 @@ addEventListener('message',e=>{const d=e.data;if(!d||!d.demoseed)return;live=d;i
 window.addEventListener('blur',()=>{if(document.activeElement===$('frame'))started=true;});
 $('seed').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=parseInt(e.target.value,16);if(!isNaN(v))setSeed(v);}});
 $('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)&&v>>>0!==seed)setSeed(v);});
-$('mShared').onclick=()=>setFree(false);$('mFree').onclick=()=>setFree(true);
+$('mShared').onclick=()=>setMode('shared');$('mFree').onclick=()=>setMode('free');$('mEra').onclick=()=>setMode('era');
 let rz=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(form){drawDiagram();drawCompare();}},150);});
 $('newseed').onclick=()=>setSeed((Math.random()*4294967296)>>>0);
 $('nextsong').onclick=()=>{try{$('frame').contentWindow.postMessage({demoseedCmd:'next'},'*');}catch(e){}};
