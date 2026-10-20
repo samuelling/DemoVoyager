@@ -17,6 +17,15 @@ body{font:15px/1.5 var(--body);font-variation-settings:"wdth" 100;padding-left:m
 .wrap{max-width:1180px;margin:0 auto;display:grid;gap:22px}
 .wrap>*{min-width:0}
 header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px}
+.titleblock{display:grid;gap:8px;min-width:0}
+.titlerow{display:flex;align-items:center;gap:20px;min-width:0}
+.sub{margin:0;font:400 13px/1.4 var(--mono);color:var(--muted)}
+.titlerow h1{min-width:0}
+.howbtn{flex:none;display:flex;align-items:flex-end;width:92px;aspect-ratio:1;padding:10px;box-sizing:border-box;background:var(--amber);color:#14110a;border-radius:3px;
+  font:800 17px/1.05 var(--display);font-variation-settings:"wdth" 112;text-transform:uppercase;text-decoration:none;transition:transform .15s,background .15s}
+.howbtn:hover{background:#ffbd55;transform:translateY(-2px)}
+.howbtn:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+@media (max-width:560px){.howbtn{width:72px;font-size:14px;padding:8px}.titlerow{gap:12px}}
 h1{margin:0;font:800 clamp(26px,4.4vw,44px)/1 var(--display);font-variation-settings:"wdth" 125;letter-spacing:-.01em;text-transform:uppercase;text-wrap:balance}
 h1 small{display:block;margin-top:8px;font:400 13px/1.4 var(--mono);letter-spacing:0;text-transform:none;color:var(--muted)}
 .seedbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -107,7 +116,7 @@ tr.cur td{color:var(--amber)}
 
 </head><body><div class="wrap">
   <header>
-    <h1>Orders of Magnitude<small id="sub">One seed, five size limits, thirty years of demo scene.</small></h1>
+    <div class="titleblock"><div class="titlerow"><h1>Orders of Magnitude</h1><a class="howbtn" id="howBtn" href="dissect.html#method">How it works</a></div><p class="sub" id="sub">One seed, five size limits, thirty years of demo scene.</p></div>
     <div class="seedbar">
       <label for="seed">Seed</label><input id="seed" maxlength="8" spellcheck="false" autocomplete="off" aria-label="Seed (hex)">
       <button id="newseed" type="button">New seed</button>
@@ -127,7 +136,7 @@ tr.cur td{color:var(--amber)}
   </section>
 
   <section aria-label="Song form">
-    <div class="formhead"><h2 id="formTitle">Form</h2><span class="links"><a id="dissectLink" href="dissect.html">Dissect this song →</a><a id="methodLink" href="dissect.html#method">How it works</a></span></div>
+    <div class="formhead"><h2 id="formTitle">Form</h2><span class="links"><a id="dissectLink" href="dissect.html">Dissect this song →</a></span></div>
     <div class="formgrid">
       <div class="diagram"><svg id="diag" aria-label="Form diagram"></svg><div class="detail" id="detail">Hover or tap a section for details.</div><div class="legend" id="legend"></div></div>
       <div class="ssm"><canvas id="ssm" width="160" height="160" aria-label="Self-similarity of the notes, bar by bar"></canvas><p id="ssmText"></p></div>
