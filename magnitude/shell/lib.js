@@ -16,8 +16,10 @@ function sharedSecs(list,song,L){const seen={};let r=0;return list.map(([name,ro
   const o={name,start:r,len:rows,bars:rows/16,meter:16,role,mat:d.mat||null,xf,tr:d.up?(song.mat.modUp||2):0,key:d.up?(song.mat.modUp||2):d.rel?(song.minor?3:-3):0,energy:d.e};r+=rows;return o;});}
 // the 40K tracker module as note events, so its similarity can be measured like the others
 function trackerEvents(song){const ev=[];let R0=0;for(const s of song.sections){const P=song.pats[s.pat];
-  for(const c of [2,3,4,5]){let open=null;for(let r=0;r<ROWS;r++){const n=P[r][c].n;if(n===null)continue;if(open){open.d=R0+r-open.t;open=null;}if(n>0){open={i:c===4?'lead':c===2?'bass':c===3?'arp':'pad',t:R0+r,n,d:1};ev.push(open);}}if(open)open.d=R0+ROWS-open.t;}
-  for(let r=0;r<ROWS;r++)for(const c of [0,1])if(P[r][c].n>0)ev.push({i:'kick',t:R0+r});R0+=ROWS;}return ev;}
+  for(const c of [2,3,4,5]){let open=null;for(let r=0;r<ROWS;r++){const cl=P[r][c],n=cl.n;if(n===null)continue;if(open){open.d=R0+r-open.t;open=null;}
+    if(n>0){const v=cl.fx===0xC?Math.max(.15,cl.p/64):1,i=c===4?'lead':c===2?'bass':c===3?'arp':cl.i===6?'echo':'pad';
+      open={i,t:R0+r,d:1,v};if(c===3&&cl.fx===0&&cl.p)open.ns=[n,n+(cl.p>>4),n+(cl.p&15)];else open.n=n;ev.push(open);}}if(open)open.d=R0+ROWS-open.t;}
+  for(let r=0;r<ROWS;r++)for(const c of [0,1]){const cl=P[r][c];if(cl.n>0)ev.push({i:cl.i===1?'kick':cl.i===2?'snare':'hat',t:R0+r,v:cl.fx===0xC?Math.max(.15,cl.p/64):1});}R0+=ROWS;}return ev;}
 const sharedThemes=song=>{const M=song.mat;return{A:{motifs:{A:M.m[0],B:M.m[1]},shape:M.sh1,prog:M.P1,start:M.start1},B:{motifs:{A:M.m[2],B:M.m[3]},shape:M.sh2,prog:M.P2,start:M.start2}};};
 function composeAll(sd,mode){if(mode===true)mode='free';if(!mode)mode='shared';const free=mode!=='shared';const song=genSong(sd),res=[];
   const k4=[['intro','intro',.15],['groove','build',.4],['A','A',.7],['A','A',.7],['break','break',.25],['B','B',.7],['B','B',.7],['groove','build',.5],['A lift','A',.85],['outro','outro',.3]];
@@ -117,3 +119,42 @@ function idiomStats(r){const {bars,S,N}=r.sim,lay=bars.map(()=>new Set()),idx=t=
   const rep=new Uint8Array(N);for(let j=1;j<N;j++)for(let i=0;i<j;i++)if(S[i*N+j]>=.9){rep[j]=1;break;}
   const reps=rep.reduce((a,b)=>a+b,0)/N,phr=r.secs.map(x=>x.bars),avgPhrase=phr.reduce((a,b)=>a+b,0)/phr.length;
   return{layers,changes,rep,reps,avgPhrase,maxLayers:Math.max(...layers),meanLayers:layers.reduce((a,b)=>a+b,0)/N};}
+
+// ---- MIDI export: a type-1 file, one track per instrument, drums on channel 10, section markers and meter changes
+const GM={lead:81,leadx:81,echo:80,harm:80,keys:4,piano:0,oboe:68,bell:14,pad:89,strings:48,choir:52,stab:62,arp:80,pluck:45,harp:46,bass:38,counter:73,timp:47};
+const GMDRUM={kick:36,snare:38,clap:39,hat:42,ohat:46,crash:49,shaker:70,taiko:35,impact:57};
+function toMidi(song,r,meta){const PPQ=96,T16=PPQ/4,swing=song.swing;
+  const tick=t=>{const ri=Math.floor(t),fr=t-ri;return Math.round(ri*T16+(swing&&(ri&1)?T16/6:0)+fr*T16);};
+  const vlq=n=>{const b=[n&127];while(n>>=7)b.unshift((n&127)|128);return b;},str=x=>[...new TextEncoder().encode(x)];
+  const track=evs=>{evs.sort((a,b)=>a.t-b.t||a.o-b.o);let last=0;const out=[];for(const e of evs){out.push(...vlq(Math.max(0,e.t-last)),...e.b);last=Math.max(last,e.t);}
+    out.push(0,0xFF,0x2F,0);return[0x4D,0x54,0x72,0x6B,(out.length>>>24)&255,(out.length>>16)&255,(out.length>>8)&255,out.length&255,...out];};
+  // conductor: tempo, meters, section markers, text
+  const c0=[{t:0,o:0,b:[0xFF,0x03,...vlq(str(meta.title).length),...str(meta.title)]},{t:0,o:0,b:[0xFF,0x51,3,...[16,8,0].map(k=>(Math.round(6e7/song.bpm)>>k)&255)]},
+    {t:0,o:0,b:[0xFF,0x01,...vlq(str(meta.text).length),...str(meta.text)]}];
+  let lastM=0;for(const x of r.secs){const t=tick(x.start);if(x.meter!==lastM){const [nn,dd]={12:[3,2],14:[7,3],16:[4,2],20:[5,2]}[x.meter]||[4,2];c0.push({t,o:1,b:[0xFF,0x58,4,nn,dd,24,8]});lastM=x.meter;}
+    c0.push({t,o:2,b:[0xFF,0x06,...vlq(str(x.name).length),...str(x.name)]});}
+  const tracks=[track(c0)],by={};for(const e of r.ev){if(e.i==='sweep'||e.i==='riser')continue;(by[e.i]||(by[e.i]=[])).push(e);}
+  let ch=0;const drums=[];
+  for(const [inst,list] of Object.entries(by)){const isDrum=GMDRUM[inst]!=null||inst==='tom';if(isDrum){for(const e of list)drums.push(Object.assign({inst},e));continue;}
+    const c=ch++%15,C=c>=9?c+1:c,evs=[{t:0,o:0,b:[0xFF,0x03,...vlq(str(inst).length),...str(inst)]},{t:0,o:0,b:[0xC0|C,GM[inst]??0]}];
+    for(const e of list){const ns=e.ns||(e.n!=null?[e.n]:[]),t0=tick(e.t),t1=Math.max(t0+6,tick(e.t+(e.d||1))),v=Math.max(1,Math.min(127,Math.round((e.v??1)*100)));
+      for(const n of ns){if(n<0||n>127)continue;evs.push({t:t0,o:2,b:[0x90|C,n,v]},{t:t1,o:1,b:[0x80|C,n,0]});}}
+    tracks.push(track(evs));}
+  if(drums.length){const evs=[{t:0,o:0,b:[0xFF,0x03,5,...str('drums')]}];for(const e of drums){const n=e.inst==='tom'?Math.max(41,Math.min(50,e.n||45)):GMDRUM[e.inst],t0=tick(e.t),v=Math.max(1,Math.min(127,Math.round((e.v??1)*100)));
+      evs.push({t:t0,o:2,b:[0x99,n,v]},{t:t0+T16/2,o:1,b:[0x89,n,0]});}tracks.push(track(evs));}
+  const head=[0x4D,0x54,0x68,0x64,0,0,0,6,0,1,(tracks.length>>8)&255,tracks.length&255,(PPQ>>8)&255,PPQ&255];
+  return new Uint8Array([...head,...tracks.flat()]);}
+// a stored (uncompressed) zip, for hosts that only accept zip downloads
+function zipStore(files){const crcT=new Uint32Array(256).map((_,n)=>{let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;return c>>>0;}),crc=b=>{let c=~0;for(const x of b)c=crcT[(c^x)&255]^(c>>>8);return(~c)>>>0;};
+  const u16=v=>[v&255,(v>>8)&255],u32=v=>[v&255,(v>>8)&255,(v>>16)&255,(v>>>24)&255],parts=[],cent=[];let off=0;
+  for(const f of files){const nm=new TextEncoder().encode(f.name),c=crc(f.data),h=[...u32(0x04034b50),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(f.data.length),...u32(f.data.length),...u16(nm.length),...u16(0),...nm];
+    parts.push(new Uint8Array(h),f.data);cent.push(...u32(0x02014b50),...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(f.data.length),...u32(f.data.length),...u16(nm.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off),...nm);off+=h.length+f.data.length;}
+  const end=[...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cent.length),...u32(off),...u16(0)];
+  return new Blob([...parts,new Uint8Array(cent),new Uint8Array(end)],{type:'application/zip'});}
+// hand the file over: inside claude.ai through the downloads capability (zip, since .mid is not on its list); elsewhere a plain download
+async function offerMidi(base,bytes,say){const safe=base.replace(/[^A-Za-z0-9 ._-]+/g,'').replace(/\s+/g,' ').trim()||'demoseed';
+  if(window.claude&&window.claude.use){let dl=null;try{dl=await window.claude.use('downloads');}catch(e){}
+    if(!dl){say('Downloads are not available in this view.');return;}
+    try{await dl.save({filename:safe+'.zip',data:zipStore([{name:safe+'.mid',data:bytes}])});say('Saved as a zip with the .mid inside.');}
+    catch(e){say(e&&e.code==='declined'?'Download cancelled.':e&&e.code==='rate_limited'?'A download prompt is already open.':'The download could not start here.');}return;}
+  const url=URL.createObjectURL(new Blob([bytes],{type:'audio/midi'})),a=document.createElement('a');a.href=url;a.download=safe+'.mid';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);say('Downloaded '+safe+'.mid');}

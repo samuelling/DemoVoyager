@@ -84,6 +84,9 @@ h2{margin:0 0 10px;font:600 11px var(--mono);letter-spacing:.14em;text-transform
 .links{display:flex;gap:16px;font:600 14px var(--body)}
 .links a{color:var(--fg);text-decoration-color:var(--amber);text-underline-offset:4px}
 .links a:hover{color:var(--amber)}
+.midibtn{font:600 14px var(--body);background:none;border:0;padding:0;color:var(--fg);text-decoration:underline;text-decoration-color:var(--amber);text-underline-offset:4px;cursor:pointer}
+.midibtn:hover{color:var(--amber)}.midibtn:disabled{color:var(--dim);text-decoration-color:var(--line);cursor:default}
+.midisay{font:12px var(--mono);color:var(--muted)}
 .formgrid{display:grid;grid-template-columns:minmax(0,1fr) 236px;gap:22px;align-items:start}
 .diagram{min-width:0}
 .diagram svg{display:block;width:100%;overflow:visible}
@@ -116,7 +119,7 @@ tr.cur td{color:var(--amber)}
 
 <div class="wrap">
   <header>
-    <div class="titleblock"><div class="titlerow"><h1>Orders of Magnitude</h1><a class="howbtn" id="howBtn" href="dissect.html#method">How this works</a></div><p class="sub" id="sub">One seed, five size limits, thirty years of demo scene.</p></div>
+    <div class="titleblock"><div class="titlerow"><h1>Orders of Magnitude</h1><a class="howbtn" id="howBtn" href="dissect.html#method">How it works</a></div><p class="sub" id="sub">One seed, five size limits, thirty years of demo scene.</p></div>
     <div class="seedbar">
       <label for="seed">Seed</label><input id="seed" maxlength="8" spellcheck="false" autocomplete="off" aria-label="Seed (hex)">
       <button id="newseed" type="button">New seed</button>
@@ -136,9 +139,9 @@ tr.cur td{color:var(--amber)}
   </section>
 
   <section aria-label="Song form">
-    <div class="formhead"><h2 id="formTitle">Form</h2><span class="links"><a id="dissectLink" href="dissect.html">Dissect this song →</a></span></div>
+    <div class="formhead"><h2 id="formTitle">Form</h2><span class="links"><button type="button" class="midibtn" id="midiBtn">Export MIDI ↓</button><a id="dissectLink" href="dissect.html">Dissect this song →</a></span></div>
     <div class="formgrid">
-      <div class="diagram"><svg id="diag" aria-label="Form diagram"></svg><div class="detail" id="detail">Hover or tap a section for details.</div><div class="legend" id="legend"></div></div>
+      <div class="diagram"><svg id="diag" aria-label="Form diagram"></svg><div class="detail" id="detail">Hover or tap a section for details.</div><div class="midisay" id="midiSay"></div><div class="legend" id="legend"></div></div>
       <div class="ssm"><canvas id="ssm" width="160" height="160" aria-label="Self-similarity of the notes, bar by bar"></canvas><p id="ssmText"></p></div>
     </div>
     <div class="facts" id="facts"></div>
@@ -234,7 +237,7 @@ function drawCompare(){const svg=$('cmp');svg.innerHTML='';const W=Math.max(300,
     shared:'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form or Era idioms to let each tier write its own structure.'}[form.mode];
     'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form to let each tier write its own structure.';}
 
-function drawForm(){$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${sfx()}-${['40k','40k','400k','4m','40m'][tier]}`;const r=form.res[tier],song=form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
+function drawForm(){$('midiBtn').disabled=tier===0;$('midiBtn').title=tier===0?'The 4K song is made inside the packed 4K file and cannot be exported':'Download this tier\'s song as a multitrack MIDI file';$('midiSay').textContent='';$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${sfx()}-${['40k','40k','400k','4m','40m'][tier]}`;const r=form.res[tier],song=form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
   $('formTitle').textContent=`Form at ${T[tier].label}`+(tier>=2?' · '+{shared:'shared form',free:'free form',era:'era idioms'}[mode]:'');$('detail').textContent='Hover or tap a section for details.';
   drawDiagram();drawSSM();drawCompare();
   let ev=0;if(r.ev)for(const e of r.ev)ev+=e.ns?e.ns.length:1;
@@ -277,6 +280,8 @@ addEventListener('message',e=>{const d=e.data;if(!d||!d.demoseed)return;live=d;i
 window.addEventListener('blur',()=>{if(document.activeElement===$('frame'))started=true;});
 $('seed').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=parseInt(e.target.value,16);if(!isNaN(v))setSeed(v);}});
 $('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)&&v>>>0!==seed)setSeed(v);});
+$('midiBtn').onclick=()=>{const r=form.res[tier];if(!r.ev)return;const nm=genNames(seed),lab=tier===1?'tracker module':{shared:'shared form',free:'free form',era:'era idioms'}[mode];
+  offerMidi(`${nm.title} - ${T[tier].label} ${lab} - ${seed.toString(16).toUpperCase().padStart(8,'0')}`,toMidi(form.song,r,{title:nm.title,text:`Demoseed ${T[tier].label}, ${lab}, by ${nm.group}, seed ${seed.toString(16).toUpperCase().padStart(8,'0')}`}),t=>{$('midiSay').textContent=t;});};
 $('mShared').onclick=()=>setMode('shared');$('mFree').onclick=()=>setMode('free');$('mEra').onclick=()=>setMode('era');
 let rz=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(form){drawDiagram();drawCompare();}},150);});
 $('newseed').onclick=()=>setSeed((Math.random()*4294967296)>>>0);

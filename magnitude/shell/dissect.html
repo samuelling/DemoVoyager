@@ -95,7 +95,7 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
   <header>
     <a class="back" href="./" id="back">← Back to the player</a>
     <h1>Dissection</h1>
-    <div class="tabs" role="tablist"><button role="tab" id="tabD" aria-selected="true" aria-controls="dissect">Dissect a song</button><button role="tab" id="tabM" aria-selected="false" aria-controls="method">How this works</button></div>
+    <div class="tabs" role="tablist"><button role="tab" id="tabD" aria-selected="true" aria-controls="dissect">Dissect a song</button><button role="tab" id="tabM" aria-selected="false" aria-controls="method">How it works</button></div>
   </header>
 
   <main id="dissect" class="wrap" style="gap:28px">
@@ -105,6 +105,7 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
       <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared">Shared form</button><button type="button" id="mFree">Free form</button><button type="button" id="mEra">Era idioms</button></span>
       <span class="seg2" role="group" aria-label="Tier" id="tiers"></span>
       <a class="playlink" id="playlink" href="./">Play this in the player</a>
+      <button class="btn" id="midiBtn" type="button">Export MIDI ↓</button><span class="note" id="midiSay"></span>
     </div>
     <div class="songline"><h2 id="songTitle"></h2><span id="songMeta"></span></div>
     <div class="kpis" id="kpis"></div>
@@ -226,6 +227,8 @@ $('tabD').onclick=()=>tab(false);$('tabM').onclick=()=>tab(true);if(h==='method'
 $('mShared').onclick=()=>{mode='shared';compose();};$('mFree').onclick=()=>{mode='free';compose();};$('mEra').onclick=()=>{mode='era';compose();};
 $('newseed').onclick=()=>{seed=(Math.random()*4294967296)>>>0;compose();};
 $('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)){seed=v>>>0;compose();}});
+$('midiBtn').onclick=()=>{const r=R(),nm=genNames(seed),tl=TIERS.find(t=>t[2]===ti)[1],lab=ti>1?{shared:'shared form',free:'free form',era:'era idioms'}[mode]:'tracker module';
+  offerMidi(`${nm.title} - ${tl} ${lab} - ${hx(seed)}`,toMidi(form.song,r,{title:nm.title,text:`Demoseed ${tl}, ${lab}, by ${nm.group}, seed ${hx(seed)}`}),t=>{$('midiSay').textContent=t;});};
 function compose(){form=composeAll(seed,mode);render();}
 const R=()=>form.res[ti];
 
