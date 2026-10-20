@@ -1,0 +1,187 @@
+<title>Orders of Magnitude</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one stage on top; under it a logarithmic byte ruler (1 KB to 100 MB) that doubles as the tier selector;
+   then the song form and three columns describing what each ceiling buys. Single dark look: it's a demo player. */
+:root{
+  --bg:#0c0d10; --panel:#14161a; --line:#272a31; --fg:#ebe8e1; --muted:#8e919a; --dim:#5c5f68;
+  --amber:#f3aa3c; --amber-soft:rgba(243,170,60,.16);
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif; --body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 var(--body);font-variation-settings:"wdth" 100;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px}
+h1{margin:0;font:800 clamp(26px,4.4vw,44px)/1 var(--display);font-variation-settings:"wdth" 125;letter-spacing:-.01em;text-transform:uppercase;text-wrap:balance}
+h1 small{display:block;margin-top:8px;font:400 13px/1.4 var(--mono);letter-spacing:0;text-transform:none;color:var(--muted)}
+.seedbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seedbar label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+input#seed{width:8.5ch;background:var(--panel);border:1px solid var(--line);color:var(--fg);font:500 15px var(--mono);padding:7px 10px;border-radius:3px;text-transform:uppercase}
+button{font:600 13px var(--body);font-variation-settings:"wdth" 110;color:var(--fg);background:var(--panel);border:1px solid var(--line);padding:8px 13px;border-radius:3px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.stage{position:relative;aspect-ratio:16/9;max-width:100%;background:#000;border:1px solid var(--line);overflow:hidden}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.stagecap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 18px;font:13px var(--mono);color:var(--muted);margin-top:-12px}
+.stagecap b{color:var(--fg);font-weight:500}
+/* the ruler */
+.ruler{position:relative;padding-top:4px}
+.stops{position:relative;height:92px}
+.stop{position:absolute;bottom:0;transform:translateX(-50%);display:grid;justify-items:center;gap:2px;background:none;border:0;padding:6px 4px 10px;color:var(--muted)}
+.stop .sz{font:800 clamp(18px,3.2vw,30px)/1 var(--display);font-variation-settings:"wdth" 120;color:var(--dim);transition:color .2s}
+.stop .era{font:500 12px var(--mono)}
+.stop:hover .sz{color:var(--muted)}
+.stop[aria-pressed="true"] .sz{color:var(--amber)}
+.stop[aria-pressed="true"] .era{color:var(--fg)}
+.stop::after{content:"";width:1px;height:10px;background:var(--line)}
+.stop[aria-pressed="true"]::after{background:var(--amber)}
+.axis{position:relative;height:46px;border-top:1px solid var(--line)}
+.tick{position:absolute;top:0;height:7px;border-left:1px solid var(--dim)}
+.tick span{position:absolute;top:9px;left:0;transform:translateX(-50%);font:11px var(--mono);color:var(--dim);white-space:nowrap}
+.bar{position:absolute;left:0;height:6px;border-radius:0 2px 2px 0;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.bar.code{top:-7px;background:var(--fg)}
+.bar.gen{top:-7px;background:repeating-linear-gradient(90deg,var(--amber) 0 3px,transparent 3px 5px)}
+.ceil{position:absolute;top:-16px;height:22px;border-left:2px solid var(--amber);transition:left .5s cubic-bezier(.2,.8,.2,1)}
+.readout{display:flex;flex-wrap:wrap;gap:6px 26px;font:13px var(--mono);color:var(--muted);margin-top:-18px;font-variant-numeric:tabular-nums}
+.readout b{color:var(--fg);font-weight:500}
+.readout .sw{display:inline-block;width:18px;height:6px;margin-right:7px;vertical-align:middle}
+.readout .rule{color:var(--amber)}
+/* form */
+h2{margin:0 0 10px;font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.form{display:flex;gap:3px;min-width:0}
+.seg{position:relative;min-width:0;height:44px;background:var(--panel);border-top:2px solid var(--line);padding:6px 7px;overflow:hidden}
+.seg span{display:block;font:500 12px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.seg i{display:block;font:11px var(--mono);font-style:normal;color:var(--dim)}
+.seg .fill{position:absolute;left:0;top:-2px;height:2px;background:var(--amber);width:0}
+.seg.now span{color:var(--fg)}
+.facts{display:flex;flex-wrap:wrap;gap:4px 22px;margin-top:10px;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.facts b{color:var(--fg);font-weight:500}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;border-top:1px solid var(--line);padding-top:18px}
+.cols p{margin:0;max-width:62ch;color:var(--fg);font-size:15px;line-height:1.55}
+.cols h3{margin:0 0 6px;font:700 18px var(--display);font-variation-settings:"wdth" 112}
+.note{font:13px/1.5 var(--mono);color:var(--muted);max-width:90ch;margin:0}
+@media (max-width:760px){#keys{display:none}.cols{grid-template-columns:1fr}.seg i{display:none}.stops{height:76px}}
+@media (prefers-reduced-motion:reduce){.bar,.ceil{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Orders of Magnitude<small>One seed, five size limits, thirty years of demo scene. Same song at every tier from 40K up.</small></h1>
+    <div class="seedbar">
+      <label for="seed">Seed</label><input id="seed" maxlength="8" spellcheck="false" autocomplete="off" aria-label="Seed (hex)">
+      <button id="newseed" type="button">New seed</button>
+      <button id="nextsong" type="button" title="Fade to the next song (400K and up)">Next song</button>
+      <button id="full" type="button">Fullscreen</button>
+    </div>
+  </header>
+
+  <div class="stage" id="stage"><iframe id="frame" title="Demo" allow="autoplay; fullscreen"></iframe></div>
+  <div class="stagecap"><span id="nowplaying"><b>Click the screen to start.</b></span><span id="keys">Keys 1–5 switch tiers</span></div>
+
+  <section class="ruler" aria-label="Tier, on a logarithmic byte scale">
+    <div class="stops" id="stops"></div>
+    <div class="axis" id="axis"><div class="bar code" id="barCode"></div><div class="bar gen" id="barGen"></div><div class="ceil" id="ceil"></div></div>
+    <div class="readout" id="readout"></div>
+  </section>
+
+  <section aria-label="Song form">
+    <h2 id="formTitle">Form</h2>
+    <div class="form" id="form"></div>
+    <div class="facts" id="facts"></div>
+  </section>
+
+  <section class="cols" id="cols"></section>
+  <p class="note" id="note"></p>
+</div>
+
+<script>/*CORE*/</script>
+<script>
+(()=>{
+const SIZES=/*SIZES*/{};
+const KB=1024,MB=1048576;
+const T=[
+ {id:'4k',label:'4K',ceil:4*KB,era:'1995',rule:'file',L:-1,
+  comp:'Its own pocket composer: one minor-key loop of four chords, two seeded motifs, a templated drum pattern, and ten 4-bar blocks that switch voices in and out. The last third lifts the key.',
+  sound:'Six voices rendered once into a single mono buffer at start: sine kick, noise snare and hats, saw bass, square arpeggio, triangle lead, one feedback echo, then crushed to 8 bits.',
+  pics:'320×200 software pixels: plasma, an XOR tunnel, moiré rings, metaballs, a starfield, voxel flight and a planet with a passing fleet, with a lens bouncing over the plasmas. The file is compressed JavaScript that unpacks itself.'},
+ {id:'40k',label:'40K',ceil:40*KB,era:'1997',rule:'file',L:0,
+  comp:'The shared composer writes a tracker module: 64-row patterns on six channels, a seeded mode and progression, motifs that are varied, inverted and sequenced, and a verse–chorus form.',
+  sound:'A small tracker engine plays the six channels through synthesized instruments, with per-note volume commands and an echo channel trailing the lead.',
+  pics:'19 software-rendered scenes at 320×200: voxel landscapes, glenz vectors, metaballs, rotozoom, fire, twisters and a flying fleet. It boots from a DOS prompt.'},
+ {id:'400k',label:'400K',ceil:400*KB,era:'2003',rule:'file',L:1,
+  comp:'The same song, arranged. Every section plays twice and the repeat is varied: passing tones into leaps, an octave lift at the phrase end, a busier bass and a new fill. Voice-led pads and real arpeggios join.',
+  sound:'A softsynth: detuned subtractive voices, synthesized drums, tempo-synced stereo delay and a generated reverb.',
+  pics:'Hardware 3D at 800×600: textured tunnels, ship fleets over a planet, a city at night, particles and terrain, with glow and feedback post effects.'},
+ {id:'4m',label:'4M',ceil:4*MB,era:'2012',rule:'mem',L:2,
+  comp:'Recomposed from the song’s raw material as a big-room track: intro, verse, build, drop, break, second build, second drop, outro. Builds rise with snare rolls and risers; drops land on an impact.',
+  sound:'Supersaws, sidechain ducking from the kick, claps and shakers, white-noise risers, filter sweeps and a longer generated hall.',
+  pics:'Every scene is a raymarched distance field: terrain with soft shadows, an Apollonian fractal, a reflective corridor, metaballs, a pulsing block city and a ringed tunnel. The form picks the scene.'},
+ {id:'40m',label:'40M',ceil:40*MB,era:'2026',rule:'mem',L:3,
+  comp:'Recomposed again in a sonata-like form: prelude, theme A, theme B in the relative key, a development that walks the circle of fifths with a canon, a build, a climax and a coda that ends on a Picardy third. A counter-melody moves against the tune.',
+  sound:'Physically modelled instruments built at start: Karplus-Strong plucks and harp, a modal piano with inharmonic partials, modal taiko and timpani, plus strings, choir and oboe in a long hall.',
+  pics:'The GPU simulates: an ink tank (stable fluids), reaction-diffusion grown as a surface, a volumetric nebula and a 131,072-particle swarm that morphs between shapes and spells the title.'},
+];
+const fmt=b=>b>=MB?(b/MB).toFixed(b>=10*MB?1:2)+' MB':b>=KB?(b/KB).toFixed(b>=10*KB?1:2)+' KB':b+' B';
+const X=b=>Math.max(0,Math.min(1,(Math.log10(b)-3)/(Math.log10(100*MB)-3)))*100;
+const $=id=>document.getElementById(id);
+let tier=1,seed=0,started=false,live={},form=null;
+try{const k=localStorage.getItem('oom-tier');if(k!==null&&T[+k])tier=+k;}catch(e){}
+const hm=/^#?([0-9a-fA-F]{1,8})$/.exec(location.hash||'');seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;
+
+// ruler
+for(const [b,l] of [[KB,'1 KB'],[10*KB,'10 KB'],[100*KB,'100 KB'],[MB,'1 MB'],[10*MB,'10 MB'],[100*MB,'100 MB']]){const d=document.createElement('div');d.className='tick';d.style.left=X(b)+'%';d.innerHTML='<span>'+l+'</span>';$('axis').appendChild(d);}
+T.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.className='stop';b.style.left=X(t.ceil)+'%';b.innerHTML=`<span class="sz">${t.label}</span><span class="era">${t.era}</span>`;b.onclick=()=>pick(i);t.el=b;$('stops').appendChild(b);});
+
+// what each tier writes for this seed
+function composeAll(sd){const song=genSong(sd),res=[];
+  res.push({secs:['intro','drums','A','A','break','B','B','groove','A lift','outro'].map(n=>[n,4]),bpm:null,len:null,ev:null,inst:6});
+  {let ev=0;for(const s of song.sections)for(const row of song.pats[s.pat])for(const c of row)if(c.n>0)ev++;
+   res.push({secs:song.sections.map(s=>[s.name,ROWS/16]),bpm:song.bpm,len:timeOf(song,song.sections.length*ROWS),ev,inst:6});}
+  for(const L of [1,2,3]){const sc=arrange(song,L);let ev=0;for(const e of sc.ev)ev+=e.ns?e.ns.length:1;
+    res.push({secs:sc.secs.map(s=>[s.name,s.len/16]),bpm:song.bpm,len:timeOf(song,sc.rows),ev,inst:new Set(sc.ev.map(e=>e.i)).size});}
+  return{song,res};}
+
+function drawForm(){const r=form.res[tier],tot=r.secs.reduce((a,s)=>a+s[1],0);const F=$('form');F.innerHTML='';
+  r.secs.forEach(([n,b],i)=>{const d=document.createElement('div');d.className='seg';d.style.flex=b+' 1 0';d.title=`${n}, ${b} bars`;d.innerHTML=`<div class="fill"></div><span>${n}</span><i>${b} bars</i>`;F.appendChild(d);});
+  const song=form.song,m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
+  $('formTitle').textContent=`Form at ${T[tier].label}`;
+  $('facts').innerHTML=(tier===0?`<span><b>${r.secs.length}</b> blocks</span><span><b>${tot}</b> bars</span><span><b>6</b> voices</span><span>its own key and tempo</span>`:
+    `<span><b>${r.secs.length}</b> sections</span><span><b>${tot}</b> bars</span><span><b>${m}</b></span><span><b>${r.ev.toLocaleString('en-US')}</b> notes and hits</span><span><b>${r.inst}</b> instruments</span><span><b>${song.bpm}</b> bpm</span><span>${song.desc.key.toLowerCase()}</span>`);}
+
+function drawMeter(){const t=T[tier],code=SIZES[t.id]||0,gen=t.rule==='mem'&&live.tier===t.label?live.generated:0;
+  $('barCode').style.width=X(code)+'%';$('barGen').style.width=gen?X(gen)+'%':'0';$('barGen').style.top=gen?'-14px':'-7px';$('ceil').style.left=X(t.ceil)+'%';
+  const lim=t.label.replace(/[KM]$/,' $&B');const rule=t.rule==='file'?`Rule: the file must fit in ${lim}`:`Rule: everything it generates must fit in ${lim}`;
+  $('readout').innerHTML=`<span class="rule">${rule}</span><span><i class="sw" style="background:var(--fg)"></i>file <b>${fmt(code)}</b>${t.rule==='file'?` · ${(code/t.ceil*100).toFixed(1)}% of the limit`:''}</span>`+
+    (t.rule==='mem'?`<span><i class="sw" style="background:repeating-linear-gradient(90deg,var(--amber) 0 3px,transparent 3px 5px)"></i>generated <b>${gen?fmt(gen):'starts with the demo'}</b>${gen?` · ${(gen/t.ceil*100).toFixed(1)}% of the limit`:''}</span>`:'');}
+
+function drawCols(){const t=T[tier];$('cols').innerHTML=`<div><h3>Composition</h3><p>${t.comp}</p></div><div><h3>Sound</h3><p>${t.sound}</p></div><div><h3>Pictures</h3><p>${t.pics}</p></div>`;
+  $('note').textContent=t.rule==='mem'?'At 4M and 40M the code is free; the meter counts every texture, render target, mesh, sample bank and impulse response the demo builds while it runs.':tier===0?'The 4K tier has room only for its own tiny composer, so its song differs from the others. Every tier from 40K up starts from the same composition for a given seed.':'From 40K up, the seed produces the same composition; each tier then arranges, voices and pictures it as far as its limit allows.';}
+
+function load(){const t=T[tier],f=$('frame');live={};const nf=f.cloneNode();nf.src=`tiers/${t.id}.html#${seed.toString(16).toUpperCase().padStart(8,'0')}`;f.replaceWith(nf);
+  nf.addEventListener('load',()=>{if(started&&t.L>0)try{nf.contentWindow.postMessage({demoseedCmd:'start'},'*');}catch(e){}});
+  T.forEach((x,i)=>x.el.setAttribute('aria-pressed',i===tier));$('seed').value=seed.toString(16).toUpperCase().padStart(8,'0');
+  $('nowplaying').innerHTML=t.L>0&&started?'<b>Starting…</b>':'<b>Click the screen to start.</b> '+(t.id==='40k'?'It boots from DOS.':'');
+  $('nextsong').disabled=t.L<1;try{history.replaceState(null,'','#'+$('seed').value);}catch(e){}
+  drawForm();drawMeter();drawCols();}
+function pick(i){tier=i;try{localStorage.setItem('oom-tier',i);}catch(e){}load();}
+function setSeed(s){seed=s>>>0;form=composeAll(seed);load();}
+
+addEventListener('message',e=>{const d=e.data;if(!d||!d.demoseed)return;live=d;if(d.state==='play'||d.state==='fadeout')started=true;
+  if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;form=composeAll(seed);$('seed').value=d.seed;drawForm();try{history.replaceState(null,'','#'+d.seed);}catch(_){}}
+  if(d.title)$('nowplaying').innerHTML=`<b>${d.title}</b> by ${d.group} · seed ${d.seed}`;
+  if(d.pos!=null&&d.rows&&d.form){let r=d.pos,segs=$('form').children;d.form.forEach(([n,len],i)=>{const s=segs[i];if(!s)return;const p=Math.max(0,Math.min(1,r/len));s.firstChild.style.width=p*100+'%';s.classList.toggle('now',p>0&&p<1);r-=len;});}
+  drawMeter();});
+window.addEventListener('blur',()=>{if(document.activeElement===$('frame'))started=true;});
+$('seed').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=parseInt(e.target.value,16);if(!isNaN(v))setSeed(v);}});
+$('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)&&v>>>0!==seed)setSeed(v);});
+$('newseed').onclick=()=>setSeed((Math.random()*4294967296)>>>0);
+$('nextsong').onclick=()=>{try{$('frame').contentWindow.postMessage({demoseedCmd:'next'},'*');}catch(e){}};
+$('full').onclick=()=>{const s=$('stage');try{(s.requestFullscreen||s.webkitRequestFullscreen).call(s);}catch(e){}};
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const n=+e.key;if(n>=1&&n<=5)pick(n-1);});
+setSeed(seed);
+})();
+</script>

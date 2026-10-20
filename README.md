@@ -37,3 +37,19 @@ Build: `cd demoseed/40k && ./build.sh` (or `demoseed/4k`). Needs Node (`npx ters
 ## Music engine
 
 Six channels, 64-row patterns of note / instrument / effect cells. Effects: `0xy` arpeggio, `1xx`/`2xx` slide, `4xy` vibrato, `Axy` volume slide, `Bxx` jump, `Cxx` volume, `Dxx` break, `Fxx` speed/BPM. Samples are synthesized at 22,050 Hz and quantized to 8 bits, then played through Web Audio with a tick-accurate lookahead scheduler.
+
+## Orders of Magnitude (`magnitude/`)
+
+One seed played as a demo at five size limits, each a step in time: **4K** (1995), **40K** (1997), **400K** (2003), **4M** (2012) and **40M** (2026). `magnitude/index.html` is a player with a tier selector on a logarithmic byte ruler, the song form for each tier, and a live meter.
+
+- 4K, 40K and 400K: the file must fit the limit.
+- 4M and 40M: the code is free, but everything the demo generates while it runs (textures, render targets, meshes, sample banks, impulse responses) must fit. Each demo reports what it builds and the player shows it against the limit.
+
+From 40K up every tier starts from the same composition for a seed (`src/core.js`), and each larger limit buys more structure as well as sound:
+
+- 40K plays the tracker module as written.
+- 400K arranges it: every section twice, the repeat varied (passing tones, octave lifts, busier bass, new fills), voice-led pads and arpeggios, softsynth, hardware 3D scenes.
+- 4M recomposes it from the raw material as a big-room track (intro, verse, build, drop, break, build, drop, outro) with risers, sidechain and supersaws; raymarched scenes chosen by section role; 800×450 targets to stay under 4 MB.
+- 40M recomposes it in a sonata-like form (prelude, theme A, theme B in the relative key, development round the circle of fifths with a canon, build, climax, coda ending on a Picardy third) with a counter-melody, physically modelled plucks, harp, piano and drums, and GPU simulations: stable fluids, reaction-diffusion, a volumetric nebula and a 131,072-particle swarm that spells the title.
+
+Build: `sh magnitude/src/build.sh` (needs Node for terser) writes `magnitude/tiers/{400k,4m,40m}.html`; `python3 magnitude/shell/build.py` writes `magnitude/index.html`. The 4K and 40K files are copies of the Demoseed ones.
