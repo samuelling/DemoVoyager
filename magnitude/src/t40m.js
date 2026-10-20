@@ -131,16 +131,16 @@ function vis40m(cv,meter){
     setPal(PDRAW.use(),o.pal).set('VP',VP).set('ps',o.ps*q).set('hue',o.hue).set('bright',o.bright).tex('x',pst[0],0);gl.drawArrays(gl.POINTS,0,NP);gl.disable(gl.BLEND);}
   function draw(s,k){frames++;const dt=Math.min(s.dt||1/60,1/20);gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
     avg+=(dt-avg)*.05;if(avg>1/36&&q>.5){q-=.125;avg=1/50;}else if(avg<1/57&&q<1){q+=.125;avg=1/50;}
-    const sc=s.scene,enter=s.sec!==cur;
-    if(enter){const prev=cur>=0?D.last:null;cur=s.sec;D.last=sc;
+    const sc=s.scene,enter=s.sec!==cur&&sc!==D.last;cur=s.sec;
+    if(enter){const prev=D.last||null;D.last=sc;
       if(sc==='fluid')resetFluid();if(sc==='rd')resetRD();
       if(sc==='title'){if(D.glyph!=='t'){glyphs(D.names.title);D.glyph='t';}resetP(40);}
       if(sc==='credits'){glyphs(D.names.group);D.glyph='g';if(prev!=='swarm'&&prev!=='title')resetP(30);}
       if(sc==='swarm'&&prev!=='title'&&prev!=='swarm'&&prev!=='credits')resetP(20);}
-    const ph=s.prog*4,bar=Math.floor(ph),f=ph-bar,clim=/climax/.test(s.name);
+    const ph=s.prog*4,bar=Math.floor(ph),f=ph-bar,clim=/climax/.test(s.kind);
     if(sc==='fluid'){fluidStep(s,dt);viewport();setPal(FDISP.use(),D.p0).set('px',[1/FD[0],1/FD[1]]).tex('d',dye[0],0);G.quad(FDISP);}
     else if(sc==='rd'){rdStep(s);viewport();setPal(RDD.use(),D.p1).set('px',[1/512,1/288]).set('t',s.secT).set('kick',s.kick).set('lead',s.lead).tex('s',rd[0],0);G.quad(RDD);}
-    else if(sc==='nebula'){nebula(s,/build/.test(s.name)?4+s.prog*s.prog*30:5,.7);}
+    else if(sc==='nebula'){nebula(s,/build/.test(s.kind)?4+s.prog*s.prog*30:5,.7);}
     else if(sc==='title'){nebula(s,1.2,.8);const p=s.prog;swarm(s,{ma:4,mb:4,mm:0,pull:Math.pow(Math.max(0,(p-.08)/.6),2)*3,flow:3.5*(1-Math.min(1,p*1.4))+.15,cam:[Math.sin(s.secT*.05)*1.5,.3,10.5-p*1.5],ps:22,hue:.05,bright:.12,pal:D.p0},dt);}
     else if(sc==='credits'){nebula(s,.8,.78);const p=s.prog;swarm(s,{ma:4,mb:4,mm:0,pull:p<.45?2.5:0,flow:p<.45?.2:2+p*4,cam:[0,.3,10.5],ps:20,hue:.6,bright:.1*(1-Math.max(0,p-.8)*5),pal:D.p1},dt);}
     else{viewport();const bg=cpal(D.p1,.6);gl.clearColor(bg[0]*.02,bg[1]*.02,bg[2]*.03,1);gl.clear(gl.COLOR_BUFFER_BIT);const O=D.order,a=O[bar%4],b=O[(bar+1)%4],T=s.secT*.12;
@@ -150,7 +150,7 @@ function vis40m(cv,meter){
     gl.disable(gl.BLEND);BRT.use().set('q',q).tex('tx',main,0);quad(BRT,bl[0][0]);
     for(let i=0;i<3;i++){const [A,B]=bl[i];if(i){BLR.use().set('dir',[0,0]).tex('tx',bl[i-1][0],0);quad(BLR,A);}
       BLR.use().set('dir',[1/A.w,0]).tex('tx',A,0);quad(BLR,B);BLR.use().set('dir',[0,1/A.h]).tex('tx',B,0);quad(BLR,A);}
-    const fl=/build/.test(s.name)?Math.pow(Math.max(0,s.prog),10)*.85:clim?Math.exp(-s.secT*2)*.9:0;
+    const fl=/build/.test(s.kind)?Math.pow(Math.max(0,s.prog),10)*.85:clim?Math.exp(-s.secT*2)*.9:0;
     G.bind(null,W,H);FIN.use().set('k',k).set('t',s.T%10).set('qq',q).set('fl',fl).set('ex',sc==='rd'||sc==='fluid'?1.1:1.25).tex('a',main,0).tex('b1',bl[0][0],1).tex('b2',bl[1][0],2).tex('b3',bl[2][0],3);G.quad(FIN);}
   return{setup,draw,resize(w,h){W=w;H=h;},idle(){G.bind(null,W,H);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);}};
 }

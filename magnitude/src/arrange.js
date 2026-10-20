@@ -60,6 +60,6 @@ function Conductor(ac,song,score,play){
   return{dur,start(at){t0=at;i=0;clearInterval(timer);timer=setInterval(pump,25);pump();},stop(){clearInterval(timer);},
     pos(){const t=ac.currentTime-t0,tt=Math.max(0,t),p=Math.floor(tt/(12*tk)),rem=tt-p*12*tk,row=p*2+(rem<a*tk?rem/(a*tk):1+(rem-a*tk)/((12-a)*tk));
       let si=0;for(let k=0;k<score.secs.length;k++)if(row>=score.secs[k].start)si=k;const S=score.secs[si];
-      return{t,row,sec:si,secT:t-timeOf(song,S.start),secLen:timeOf(song,S.start+S.len)-timeOf(song,S.start),name:S.name,prog:(row-S.start)/S.len,
+      return{t,row,sec:si,secT:t-timeOf(song,S.start),secLen:timeOf(song,S.start+S.len)-timeOf(song,S.start),name:S.name,kind:S.role||S.name,prog:(row-S.start)/S.len,
         kick:Math.exp(-(t-last(kicks,t))*8),snare:Math.exp(-(t-last(snares,t))*9),lead:Math.exp(-(t-last(leads,t))*4),done:t>=dur};}};
 }

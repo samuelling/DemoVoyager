@@ -8,7 +8,7 @@ runTier({tier:'40M',
     x.fillStyle='#a6a6b2';x.font=`${H*.022|0}px ${MONO}`;x.fillText('audio paused by the browser',tx,by+H*.05);},L:3,aspect:16/9,fixedW:1024,maxDpr:1,budget:40*1048576,
   intro:'title',outro:'credits',pool:['fluid','swarm','rd','nebula'],
   // the movement decides the simulation: themes get the two "characters", development grows, the build accelerates, the climax explodes
-  sceneFor:n=>/theme A/.test(n)?['swarm','fluid']:/theme B/.test(n)?['fluid','swarm']:/development/.test(n)?['rd']:/build/.test(n)?['nebula']:/climax/.test(n)?['swarm']:null,
+  sceneFor:n=>/theme A/.test(n)?['swarm','fluid']:/theme B/.test(n)?['fluid','swarm']:/development|variation/.test(n)?['rd','fluid']:/build|bridge/.test(n)?['nebula']:/climax|drop/.test(n)?['swarm']:/state|ret|break/.test(n)?['fluid','swarm','nebula']:null,
   makeVisuals:vis40m,
   idleText(x,W,H,T,seed){x.fillStyle='#000';x.fillRect(0,0,W,H);x.textAlign='left';x.fillStyle='#fff';x.font=`700 ${H*.1|0}px ${SANS}`;try{x.letterSpacing=(-H*.004|0)+'px';}catch(e){}
     x.fillText('Demoseed 40M',W*.08,H*.5);try{x.letterSpacing='0px';}catch(e){}x.fillStyle='#8c8c96';x.font=`${H*.026|0}px ${MONO}`;

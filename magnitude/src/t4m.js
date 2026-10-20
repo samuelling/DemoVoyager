@@ -105,7 +105,7 @@ vec3 render(vec2 p){float z=t*9.;vec3 ro=vec3(path(z),z),rd=camd(ro,vec3(path(z+
     draw(s,k){const nm=s.scene==='title'?'blobs':s.scene==='credits'?'fractal':s.scene,pr=progs[nm];gl.disable(gl.DEPTH_TEST);
       // adaptive resolution: render the scene into a smaller part of the target when frames run long (never more than the budget)
       avg+=(s.dt-avg)*.05;if(avg>1/38&&q>.5){q-=.125;avg=1/50;}else if(avg<1/57&&q<1){q+=.125;avg=1/50;}
-      const fl=/build/.test(s.name)?Math.pow(Math.max(0,s.prog),8)*.9:/drop|climax/.test(s.name)?Math.exp(-s.secT*2.5)*.8:0;
+      const fl=/build/.test(s.kind)?Math.pow(Math.max(0,s.prog),8)*.9:/drop|climax/.test(s.kind)?Math.exp(-s.secT*2.5)*.8:0;
       gl.bindFramebuffer(gl.FRAMEBUFFER,sc.fb);gl.viewport(0,0,IW*q|0,IH*q|0);pr.use().set('R',[IW*q|0,IH*q|0]).set('t',s.secT+s.sec*7.3).set('kick',s.kick).set('snare',s.snare).set('lead',s.lead).set('prog',s.prog).set('P',D.P).set('Q',D.Q).set('pa',D.pa).set('pb',D.pb).set('pd',D.pd).tex('nz',nzT,0);G.quad(pr);
       G.bind(h1);BR.use().set('q',q).tex('tx',sc,0);G.quad(BR);G.bind(h2);BL.use().set('dir',[2/h1.w,0]).tex('tx',h1,0);G.quad(BL);G.bind(h1);BL.use().set('dir',[0,2/h1.h]).tex('tx',h2,0);G.quad(BL);
       G.bind(q1);BL.use().set('dir',[2/q1.w,0]).tex('tx',h1,0);G.quad(BL);G.bind(q2);BL.use().set('dir',[0,2/q1.h]).tex('tx',q1,0);G.quad(BL);

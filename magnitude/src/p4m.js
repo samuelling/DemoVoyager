@@ -11,7 +11,7 @@ runTier({tier:'4M',
     try{x.letterSpacing=(H*.006|0)+'px';}catch(e){}x.fillStyle='rgba(255,255,255,.55)';x.font=F4(300,H*.022);x.fillText('YOUR BROWSER IS HOLDING THE AUDIO',cx,cy+r*2.35);try{x.letterSpacing='0px';}catch(e){}},L:2,aspect:16/9,fixedW:800,maxDpr:1,budget:4*1048576,
   intro:'title',outro:'credits',pool:['terrain','fractal','corridor','blobs','cubes','tunnel'],
   // the form chooses the scene: builds run forward, drops hit hard, quiet sections breathe
-  sceneFor:n=>/build/.test(n)?['corridor','tunnel']:/drop/.test(n)?['cubes','fractal','tunnel']:/break|verse/.test(n)?['terrain','blobs']:null,
+  sceneFor:n=>/build|bridge/.test(n)?['corridor','tunnel']:/drop|climax/.test(n)?['cubes','fractal','tunnel']:/break|verse|state|ret|development|variation/.test(n)?['terrain','blobs','fractal','cubes']:null,
   makeVisuals:vis4m,
   idleText(x,W,H,T,seed){x.fillStyle='#050608';x.fillRect(0,0,W,H);x.textAlign='center';x.fillStyle='#eef';
     try{x.letterSpacing=(H*.02|0)+'px';}catch(e){}x.font=F4(200,H*.09);x.fillText('DEMOSEED 4M',W/2,H*.44);
