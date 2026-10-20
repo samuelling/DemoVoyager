@@ -906,24 +906,24 @@ const T=[
   pics:'320×200 software pixels: plasma, an XOR tunnel, moiré rings, metaballs, a starfield, voxel flight and a planet with a passing fleet, with a lens bouncing over the plasmas. The file is compressed JavaScript that unpacks itself.'},
  {id:'40k',label:'40K',ceil:40*KB,era:'1997',rule:'file',L:0,
   free:'Fixed in every mode: the 40K file plays its tracker module as written. It is the baseline the free forms grow from.',
-  era:'Fixed in every mode, and already its era’s idiom: a 1997 tracker module, a handful of patterns reused from an order list, channels switched in and out to arrange.',
+  idiom:'Fixed in every mode, and already its era’s idiom: a 1997 tracker module, a handful of patterns reused from an order list, channels switched in and out to arrange.',
   comp:'The shared composer writes a tracker module: 64-row patterns on six channels, a seeded mode and progression, motifs that are varied, inverted and sequenced, and a verse–chorus form.',
   sound:'A small tracker engine plays the six channels through synthesized instruments, with per-note volume commands and an echo channel trailing the lead.',
   pics:'19 software-rendered scenes at 320×200: voxel landscapes, glenz vectors, metaballs, rotozoom, fire, twisters and a flying fleet. It boots from a DOS prompt.'},
  {id:'400k',label:'400K',ceil:400*KB,era:'2003',rule:'file',L:1,
-  era:'Era idioms, 2003 trance and progressive: the form is built by layering. One part enters or leaves every 8 bars; a breakdown strips the drums, a snare roll builds, the climax brings everything back and the outro takes it apart again.',
+  idiom:'Era idioms, 2003 trance and progressive: the form is built by layering. One part enters or leaves every 8 bars; a breakdown strips the drums, a snare roll builds, the climax brings everything back and the outro takes it apart again.',
   free:'Free form, one level: a string of 8- and 16-bar sections over two themes. A return may be varied, lifted an octave or thinned, and nothing more.',
   comp:'The same song, arranged. Every section plays twice and the repeat is varied: passing tones into leaps, an octave lift at the phrase end, a busier bass and a new fill. Voice-led pads and real arpeggios join.',
   sound:'A softsynth: detuned subtractive voices, synthesized drums, tempo-synced stereo delay and a generated reverb.',
   pics:'Hardware 3D at 800×600: textured tunnels, ship fleets over a planet, a city at night, particles and terrain, with glow and feedback post effects.'},
  {id:'4m',label:'4M',ceil:4*MB,era:'2012',rule:'mem',L:2,
-  era:'Era idioms, 2012 EDM: verse hooks as call and answer, a build with a gap before the drop, a big-room or half-time drop, and a second drop that switches style or lifts the key.',
+  idiom:'Era idioms, 2012 EDM: verse hooks as call and answer, a build with a gap before the drop, a big-room or half-time drop, and a second drop that switches style or lifts the key.',
   free:'Free form, two levels: parts made of sections, three themes placed in related keys, builds and drops. A return may carry two of nine transformations: varied, octave, thinned, transposed, fragmented, augmented, reharmonised, half-time or in thirds.',
   comp:'Recomposed from the song’s raw material as a big-room track: intro, verse, build, drop, break, second build, second drop, outro. Builds rise with snare rolls and risers; drops land on an impact.',
   sound:'Supersaws, sidechain ducking from the kick, claps and shakers, white-noise risers, filter sweeps and a longer generated hall.',
   pics:'Every scene is a raymarched distance field: terrain with soft shadows, an Apollonian fractal, a reflective corridor, metaballs, a pulsing block city and a ringed tunnel. The form picks the scene.'},
  {id:'40m',label:'40M',ceil:40*MB,era:'2026',rule:'mem',L:3,
-  era:'Era idioms, 2026 cinematic scoring: acts instead of verses. Leitmotifs change mood with the story (statement, darker, threat, heroic, remembered), ostinatos and drones carry tension, hits mark the cuts, and two motifs meet at the climax.',
+  idiom:'Era idioms, 2026 cinematic scoring: acts instead of verses. Leitmotifs change mood with the story (statement, darker, threat, heroic, remembered), ostinatos and drones carry tension, hits mark the cuts, and two motifs meet at the climax.',
   free:'Free form, three levels: movements, sections and phrases of 4 to 16 bars, five themes on a tonal plan, odd meters (3/4, 7/8, 5/4), and returns with up to three of fourteen transformations, adding inversion, retrograde, diminution, canon and modal mixture. Themes can sound together in counterpoint.',
   comp:'Recomposed again in a sonata-like form: prelude, theme A, theme B in the relative key, a development that walks the circle of fifths with a canon, a build, a climax and a coda that ends on a Picardy third. A counter-melody moves against the tune.',
   sound:'Physically modelled instruments built at start: Karplus-Strong plucks and harp, a modal piano with inharmonic partials, modal taiko and timpani, plus strings, choir and oboe in a long hall.',
@@ -984,7 +984,7 @@ function drawMeter(){const t=T[tier],code=SIZES[t.id]||0,gen=t.rule==='mem'&&liv
   $('readout').innerHTML=`<span class="rule">${rule}</span><span><i class="sw" style="background:var(--fg)"></i>file <b>${fmt(code)}</b>${t.rule==='file'?` · ${(code/t.ceil*100).toFixed(1)}% of the limit`:''}</span>`+
     (t.rule==='mem'?`<span><i class="sw" style="background:repeating-linear-gradient(90deg,var(--amber) 0 3px,transparent 3px 5px)"></i>generated <b>${gen?fmt(gen):'starts with the demo'}</b>${gen?` · ${(gen/t.ceil*100).toFixed(1)}% of the limit`:''}</span>`:'');}
 
-function drawCols(){const t=T[tier];$('cols').innerHTML=`<div><h3>Composition</h3><p>${mode!=='shared'&&t[mode]?t[mode]:t.comp}</p></div><div><h3>Sound</h3><p>${t.sound}</p></div><div><h3>Pictures</h3><p>${t.pics}</p></div>`;
+function drawCols(){const t=T[tier];$('cols').innerHTML=`<div><h3>Composition</h3><p>${mode==='era'&&t.idiom?t.idiom:mode==='free'&&t.free?t.free:t.comp}</p></div><div><h3>Sound</h3><p>${t.sound}</p></div><div><h3>Pictures</h3><p>${t.pics}</p></div>`;
   $('note').textContent=t.rule==='mem'?'At 4M and 40M the code is free; the meter counts every texture, render target, mesh, sample bank and impulse response the demo builds while it runs.':tier===0?'The 4K tier has room only for its own tiny composer, so its song differs from the others. Every tier from 40K up starts from the same composition for a given seed.':'From 40K up, the seed produces the same composition; each tier then arranges, voices and pictures it as far as its limit allows.';}
 
 function load(){const t=T[tier],f=$('frame');live={};const nf=f.cloneNode();nf.src=`tiers/${t.id}.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${t.L>0?sfx():''}`;f.replaceWith(nf);
