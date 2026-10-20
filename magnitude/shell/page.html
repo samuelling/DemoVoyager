@@ -28,6 +28,9 @@ button:hover{border-color:var(--muted)}
 .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
 .stagecap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 18px;font:13px var(--mono);color:var(--muted);margin-top:-12px}
 .stagecap b{color:var(--fg);font-weight:500}
+.stagecap b.warn{color:var(--amber)}
+.stage.mute{border-color:var(--amber);animation:mute 1.6s ease-in-out infinite}
+@keyframes mute{50%{box-shadow:0 0 0 4px var(--amber-soft)}}
 /* the ruler */
 .ruler{position:relative;padding-top:4px}
 .stops{position:relative;height:92px}
@@ -65,7 +68,7 @@ h2{margin:0 0 10px;font:600 11px var(--mono);letter-spacing:.14em;text-transform
 .cols h3{margin:0 0 6px;font:700 18px var(--display);font-variation-settings:"wdth" 112}
 .note{font:13px/1.5 var(--mono);color:var(--muted);max-width:90ch;margin:0}
 @media (max-width:760px){#keys{display:none}.cols{grid-template-columns:1fr}.seg i{display:none}.stops{height:76px}}
-@media (prefers-reduced-motion:reduce){.bar,.ceil{transition:none}}
+@media (prefers-reduced-motion:reduce){.bar,.ceil{transition:none}.stage.mute{animation:none}}
 </style>
 
 <div class="wrap">
@@ -172,7 +175,8 @@ function setSeed(s){seed=s>>>0;form=composeAll(seed);load();}
 
 addEventListener('message',e=>{const d=e.data;if(!d||!d.demoseed)return;live=d;if(d.state==='play'||d.state==='fadeout')started=true;
   if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;form=composeAll(seed);$('seed').value=d.seed;drawForm();try{history.replaceState(null,'','#'+d.seed);}catch(_){}}
-  if(d.title)$('nowplaying').innerHTML=`<b>${d.title}</b> by ${d.group} · seed ${d.seed}`;
+  const mute=d.sound==='suspended';$('stage').classList.toggle('mute',mute);
+  if(mute)$('nowplaying').innerHTML='<b class="warn">Sound is off. Click the screen to turn it on.</b>';else if(d.title)$('nowplaying').innerHTML=`<b>${d.title}</b> by ${d.group} · seed ${d.seed}`;
   if(d.pos!=null&&d.rows&&d.form){let r=d.pos,segs=$('form').children;d.form.forEach(([n,len],i)=>{const s=segs[i];if(!s)return;const p=Math.max(0,Math.min(1,r/len));s.firstChild.style.width=p*100+'%';s.classList.toggle('now',p>0&&p<1);r-=len;});}
   drawMeter();});
 window.addEventListener('blur',()=>{if(document.activeElement===$('frame'))started=true;});

@@ -4,7 +4,7 @@ function runTier(cfg){
   const cv=document.getElementById('c'),ov=document.getElementById('o'),x=ov.getContext('2d');
   let meterItems={},ac=null,synth=null,cond=null,demo=null,vis=null,state='idle',fade=0;
   const meter=(label,bytes)=>{meterItems[label]=(meterItems[label]||0)+bytes;};
-  const report=()=>{const total=Object.values(meterItems).reduce((a,b)=>a+b,0);try{parent.postMessage({demoseed:1,tier:cfg.tier,generated:total,items:meterItems,seed:demo&&hex8(demo.seed),title:demo&&demo.names.title,group:demo&&demo.names.group,state,budget:cfg.budget||0,form:demo&&demo.score.secs.map(s=>[s.name,s.len]),bpm:demo&&demo.song.bpm,pos:cond&&state==='play'?cond.pos().row:0,rows:demo&&demo.score.rows},'*');}catch(e){}};
+  const report=()=>{const total=Object.values(meterItems).reduce((a,b)=>a+b,0);try{parent.postMessage({demoseed:1,tier:cfg.tier,generated:total,items:meterItems,seed:demo&&hex8(demo.seed),title:demo&&demo.names.title,group:demo&&demo.names.group,state,sound:ac?ac.state:null,budget:cfg.budget||0,form:demo&&demo.score.secs.map(s=>[s.name,s.len]),bpm:demo&&demo.song.bpm,pos:cond&&state==='play'?cond.pos().row:0,rows:demo&&demo.score.rows},'*');}catch(e){}};
   const resize=()=>{const dpr=Math.min(cfg.maxDpr||2,window.devicePixelRatio||1),w=innerWidth,h=innerHeight;
     const ar=cfg.aspect||16/9;let W=w,H=w/ar;if(H>h){H=h;W=h*ar;}
     const rw=cfg.fixedW||Math.round(W*dpr),rh=cfg.fixedW?Math.round(cfg.fixedW/ar):Math.round(H*dpr);
@@ -41,9 +41,10 @@ function runTier(cfg){
     let k=1;if(state==='fadeout'){k=1-Math.min(1,(now-fade)/900);if(k<=0){start(hashSeed(demo.seed,777));return;}synth.master.gain.setTargetAtTime(.6*k,ac.currentTime,.05);}
     if(s.t<.6)k*=Math.max(0,s.t/.6);
     vis.draw(s,k);cfg.overlay(x,W,H,s,demo,k);
-    if(ac.state==='suspended'){x.fillStyle='rgba(0,0,0,.6)';x.fillRect(0,0,W,H*.08);x.fillStyle='#fff';x.textAlign='center';x.font=`${H*.035|0}px sans-serif`;x.fillText('click for sound',W/2,H*.055);}
+    // the browser kept the audio suspended (auto-start without a click in this frame): ask, in the tier's own period style
+    if(ac.state==='suspended'){x.save();cfg.soundPrompt(x,W,H,T);x.restore();}
     if((T*8|0)!==((T-dt)*8|0))report();
   }
   requestAnimationFrame(frame);report();
-  if(/test/.test(location.search))window.__tier={get demo(){return demo;},get meter(){return meterItems;},vis,act,next,drawAt:(sec,secT,dt)=>{const S=demo.score.secs[sec],row=S.start+secT/(15/demo.song.bpm),s={t:secT,row,sec,secT,secLen:S.len*15/demo.song.bpm,name:S.name,role:sec===0?'intro':sec===demo.scenes.length-1?'outro':'body',kick:.5,snare:.3,lead:.5,T:secT,dt:dt||1/60,scene:demo.scenes[sec],prog:(row-S.start)/S.len,names:demo.names};vis.draw(s,1);x.clearRect(0,0,ov.width,ov.height);cfg.overlay(x,ov.width,ov.height,s,demo,1);},stopAudio:()=>{cond&&cond.stop();state='test';}};
+  if(/test/.test(location.search))window.__tier={get demo(){return demo;},get ac(){return ac;},get meter(){return meterItems;},vis,act,next,drawAt:(sec,secT,dt)=>{const S=demo.score.secs[sec],row=S.start+secT/(15/demo.song.bpm),s={t:secT,row,sec,secT,secLen:S.len*15/demo.song.bpm,name:S.name,role:sec===0?'intro':sec===demo.scenes.length-1?'outro':'body',kick:.5,snare:.3,lead:.5,T:secT,dt:dt||1/60,scene:demo.scenes[sec],prog:(row-S.start)/S.len,names:demo.names};vis.draw(s,1);x.clearRect(0,0,ov.width,ov.height);cfg.overlay(x,ov.width,ov.height,s,demo,1);},stopAudio:()=>{cond&&cond.stop();state='test';}};
 }

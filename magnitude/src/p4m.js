@@ -1,6 +1,14 @@
 /* 4M tier page: era 2012. Clean sans typography, section captions, credits as fading cards. */
 const F4=(w,px)=>`${w} ${px|0}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
-runTier({tier:'4M',L:2,aspect:16/9,fixedW:800,maxDpr:1,budget:4*1048576,
+const speaker=(x,cx,cy,r,waves,lw)=>{x.beginPath();x.moveTo(cx-r,cy-r*.35);x.lineTo(cx-r*.45,cy-r*.35);x.lineTo(cx+r*.1,cy-r*.85);x.lineTo(cx+r*.1,cy+r*.85);x.lineTo(cx-r*.45,cy+r*.35);x.lineTo(cx-r,cy+r*.35);x.closePath();x.fill();
+  x.lineWidth=lw;x.lineCap='round';for(let i=0;i<waves;i++){x.beginPath();x.arc(cx+r*.15,cy,r*(.55+i*.4),-.75,.75);x.stroke();}};
+runTier({tier:'4M',
+  soundPrompt(x,W,H,T){x.fillStyle='rgba(4,6,10,.62)';x.fillRect(0,0,W,H);const cx=W/2,cy=H*.44,r=H*.11,b=.5+.5*Math.sin(T*2.4);
+    x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=Math.max(1,H*.003);x.beginPath();x.arc(cx,cy,r,0,7);x.stroke();
+    x.strokeStyle=`rgba(255,255,255,${.35*(1-b)})`;x.beginPath();x.arc(cx,cy,r*(1+b*.45),0,7);x.stroke();
+    x.fillStyle='#fff';x.strokeStyle='#fff';speaker(x,cx-r*.12,cy,r*.4,2,Math.max(1,H*.004));
+    x.textAlign='center';x.textBaseline='middle';try{x.letterSpacing=(H*.014|0)+'px';}catch(e){}x.font=F4(200,H*.045);x.fillText('CLICK FOR SOUND',cx,cy+r*1.75);
+    try{x.letterSpacing=(H*.006|0)+'px';}catch(e){}x.fillStyle='rgba(255,255,255,.55)';x.font=F4(300,H*.022);x.fillText('YOUR BROWSER IS HOLDING THE AUDIO',cx,cy+r*2.35);try{x.letterSpacing='0px';}catch(e){}},L:2,aspect:16/9,fixedW:800,maxDpr:1,budget:4*1048576,
   intro:'title',outro:'credits',pool:['terrain','fractal','corridor','blobs','cubes','tunnel'],
   // the form chooses the scene: builds run forward, drops hit hard, quiet sections breathe
   sceneFor:n=>/build/.test(n)?['corridor','tunnel']:/drop/.test(n)?['cubes','fractal','tunnel']:/break|verse/.test(n)?['terrain','blobs']:null,
