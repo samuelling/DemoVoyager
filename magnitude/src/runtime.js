@@ -32,16 +32,17 @@ function runTier(cfg){
   const next=()=>{if(state!=='play')return;state='fadeout';fade=performance.now();};
   cv.parentElement.addEventListener('click',act);
   addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'||e.code==='KeyN'){e.preventDefault();act();}else if(e.code==='KeyF'){try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}catch(_){}}});
-  addEventListener('message',e=>{if(e.data&&e.data.demoseedCmd==='next')next();else if(e.data&&e.data.demoseedCmd==='start'&&state==='idle')act();});
+  let shown=true; // the player tells us when the stage is scrolled out of view; then we stop drawing and leave the CPU to the audio
+  addEventListener('message',e=>{if(e.data&&e.data.demoseedCmd==='visible')shown=!!e.data.v;if(e.data&&e.data.demoseedCmd==='next')next();else if(e.data&&e.data.demoseedCmd==='start'&&state==='idle')act();});
   let last=performance.now(),T=0;
   function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;
-    if(state==='test')return;const W=ov.width,H=ov.height;x.clearRect(0,0,W,H);
+    if(state==='test')return;const W=ov.width,H=ov.height;if(shown||state==='idle')x.clearRect(0,0,W,H);
     if(state==='idle'){vis.idle(T);cfg.idleText(x,W,H,T,seed);return;}
     const s=cond.pos();s.T=T;s.dt=dt;s.scene=demo.scenes[s.sec];s.role=s.sec===0?'intro':s.sec===demo.scenes.length-1?'outro':'body';s.names=demo.names;
     if(s.done&&state==='play')next();
     let k=1;if(state==='fadeout'){k=1-Math.min(1,(now-fade)/900);if(k<=0){start(hashSeed(demo.seed,777));return;}synth.master.gain.setTargetAtTime(.6*k,ac.currentTime,.05);}
     if(s.t<.6)k*=Math.max(0,s.t/.6);
-    vis.draw(s,k);cfg.overlay(x,W,H,s,demo,k);
+    if(shown){vis.draw(s,k);cfg.overlay(x,W,H,s,demo,k);}
     // the browser kept the audio suspended (auto-start without a click in this frame): ask, in the tier's own period style
     if(ac.state==='suspended'){x.save();cfg.soundPrompt(x,W,H,T);x.restore();}
     if((T*8|0)!==((T-dt)*8|0))report();

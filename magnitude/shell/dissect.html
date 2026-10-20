@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Orders of Magnitude Dissection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an analyst's bench. Controls on top, then one song taken apart top to bottom (form, notes, similarity, texture,
+   themes, sections); the method is a second tab written as a short paper. Same dark tokens as the player. */
+:root{
+  --bg:#0c0d10; --panel:#14161a; --panel2:#1a1d22; --line:#272a31; --fg:#ebe8e1; --muted:#8e919a; --dim:#5c5f68;
+  --accent:#c98500; --accent-soft:rgba(201,133,0,.18);
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif; --body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg);margin:0}
+[hidden]{display:none!important}
+body{font:15px/1.55 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:22px}
+.wrap>*,.grid2>*{min-width:0}
+a{color:var(--fg)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:grid;gap:12px}
+.back{font:13px var(--mono);color:var(--muted);text-decoration:none}
+.back:hover{color:var(--fg)}
+h1{margin:0;font:800 clamp(26px,4.4vw,44px)/1 var(--display);font-variation-settings:"wdth" 125;text-transform:uppercase;letter-spacing:-.01em}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{font:600 14px var(--body);background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent)}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.controls label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+input#seed{width:8.5ch;background:var(--panel);border:1px solid var(--line);color:var(--fg);font:500 15px var(--mono);padding:7px 10px;border-radius:3px;text-transform:uppercase}
+button.btn,.seg2 button{font:600 13px var(--body);color:var(--fg);background:var(--panel);border:1px solid var(--line);padding:8px 13px;border-radius:3px;cursor:pointer}
+.seg2{display:inline-flex}
+.seg2 button{border-radius:0;color:var(--muted)}
+.seg2 button+button{border-left:0}
+.seg2 button:first-child{border-radius:3px 0 0 3px}.seg2 button:last-child{border-radius:0 3px 3px 0}
+.seg2 button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.playlink{font:600 13px var(--body);text-decoration:none;border:1px solid var(--line);padding:8px 13px;border-radius:3px}
+.songline{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+.songline h2{margin:0;font:700 clamp(22px,3vw,30px)/1.1 var(--display);font-variation-settings:"wdth" 112}
+.songline span{font:13px var(--mono);color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.kpi{padding:10px 12px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kpi b{display:block;font:600 22px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.kpi span{font:11px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.card{display:grid;gap:10px}
+h3{margin:0;font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.card p.cap{margin:0;font:13px/1.5 var(--mono);color:var(--muted);max-width:92ch}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}
+.diagram svg{display:block;width:100%;overflow:visible}
+.card svg{display:block;width:100%}
+svg text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+svg .lbl{fill:var(--fg)}
+.detail,.readout{min-height:1.5em;font:13px var(--mono);color:var(--fg)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font:12px var(--mono);color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.rollbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.roll{position:relative;overflow-x:auto;border:1px solid var(--line);background:var(--panel)}
+.roll canvas{display:block}
+.tip{position:absolute;pointer-events:none;background:var(--panel2);border:1px solid var(--line);font:12px var(--mono);padding:4px 7px;white-space:nowrap;color:var(--fg);display:none;z-index:2}
+.ssmwrap{position:relative;max-width:420px}
+.ssmwrap canvas{width:100%;aspect-ratio:1;display:block;image-rendering:pixelated;background:var(--panel);cursor:crosshair}
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.theme{border-top:3px solid var(--dim);padding-top:10px;display:grid;gap:8px;align-content:start}
+.theme h4{margin:0;font:700 18px var(--display);font-variation-settings:"wdth" 112}
+.theme dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font:12px var(--mono)}
+.theme dt{color:var(--muted)}.theme dd{margin:0}
+.theme ul{margin:0;padding-left:16px;font:12px/1.5 var(--mono);color:var(--muted)}
+.theme ul b{color:var(--fg);font-weight:500}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font:12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:860px}
+th,td{text-align:left;padding:6px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.n,th.n{text-align:right}
+th{font-weight:500;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
+.note{font:13px/1.5 var(--mono);color:var(--muted);margin:0}
+/* method */
+.method{max-width:74ch;display:grid;gap:6px}
+.method h2{font:700 24px/1.2 var(--display);font-variation-settings:"wdth" 112;margin:26px 0 4px;text-wrap:balance}
+.method h2:first-child{margin-top:4px}
+.method p,.method li{margin:0 0 10px}
+.method code{font:13px var(--mono);background:var(--panel);padding:1px 5px;border-radius:2px}
+.method .tbl{overflow-x:auto;margin:6px 0 14px}
+.method table{min-width:560px}
+.method .eq{font:14px var(--mono);background:var(--panel);padding:10px 14px;border-left:2px solid var(--accent);margin:6px 0 14px;overflow-x:auto}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font:12px var(--mono);margin:6px 0 16px}
+.flow span{background:var(--panel);border:1px solid var(--line);padding:6px 9px}
+.flow i{color:var(--dim);font-style:normal}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="back" href="./" id="back">← Back to the player</a>
+    <h1>Dissection</h1>
+    <div class="tabs" role="tablist"><button role="tab" id="tabD" aria-selected="true" aria-controls="dissect">Dissect a song</button><button role="tab" id="tabM" aria-selected="false" aria-controls="method">How it works</button></div>
+  </header>
+
+  <main id="dissect" class="wrap" style="gap:28px">
+    <div class="controls">
+      <label for="seed">Seed</label><input id="seed" maxlength="8" spellcheck="false" autocomplete="off">
+      <button class="btn" id="newseed" type="button">New seed</button>
+      <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared">Shared form</button><button type="button" id="mFree">Free form</button></span>
+      <span class="seg2" role="group" aria-label="Tier" id="tiers"></span>
+      <a class="playlink" id="playlink" href="./">Play this in the player</a>
+    </div>
+    <div class="songline"><h2 id="songTitle"></h2><span id="songMeta"></span></div>
+    <div class="kpis" id="kpis"></div>
+
+    <section class="card"><h3>Form</h3><div class="diagram"><svg id="diag"></svg></div><div class="detail" id="detail">Hover or tap a section for details.</div><div class="legend" id="legend"></div></section>
+
+    <section class="card"><div class="rollbar"><h3 style="margin-right:auto">Every note</h3><span class="seg2" role="group" aria-label="Zoom" id="zoom"></span></div>
+      <div class="roll" id="roll"><canvas id="rollc"></canvas><div class="tip" id="rollTip"></div></div>
+      <div class="legend" id="rollLegend"></div>
+      <p class="cap">Melody notes take their theme’s colour. Under the section names, the chord row is estimated from what the accompaniment actually plays, named against the section’s key.</p></section>
+
+    <div class="grid2">
+      <section class="card"><h3>Similarity, bar by bar</h3><div class="ssmwrap"><canvas id="ssm"></canvas></div><div class="readout" id="ssmRead">Point at the map to compare two bars.</div>
+        <p class="cap">Bright = two bars share melody intervals, scale degrees, rhythm and harmony. Diagonal stripes off the main diagonal are passages returning; smoothed over three bars.</p></section>
+      <section class="card"><h3>Is the form audible?</h3><svg id="dist"></svg><div class="readout" id="distRead"></div>
+        <p class="cap">Every pair of bars from two themed sections, lined up from the sections’ starts. If the form is audible, same-theme pairs sit to the right of different-theme pairs. d′ is the gap between the two means in pooled standard deviations.</p></section>
+    </div>
+
+    <div class="grid2">
+      <section class="card"><h3>Energy planned, notes played</h3><svg id="energy"></svg><div class="readout" id="energyRead">Point at the charts for a bar.</div></section>
+      <section class="card"><h3>Who plays when</h3><svg id="heat"></svg><div class="readout" id="heatRead">Point at a cell.</div></section>
+    </div>
+
+    <section class="card"><h3>Themes</h3><div class="themes" id="themes"></div></section>
+
+    <section class="card"><h3>Sections</h3><div class="tablewrap"><table id="secTable"></table></div>
+      <p class="cap">Recognisable = average similarity of the section to its theme’s first appearance, bar for bar. Transformations that disguise a theme pull it down.</p></section>
+  </main>
+
+  <article id="method" class="method" hidden>
+    <h2>One number in, a whole demo out</h2>
+    <p>Everything starts from a 32-bit seed. A hash splits it into independent random streams, one each for the names, the composition, the instruments, the scene order, the visuals and the free-form plans, so changing how one part is generated never disturbs the others. The same seed produces the same song and the same pictures on any machine.</p>
+    <div class="flow"><span>seed</span><i>→</i><span>composition</span><i>→</i><span>form (shared or free)</span><i>→</i><span>score: notes with times</span><i>→</i><span>era synth</span><i>+</i><span>scenes chosen by section role</span></div>
+
+    <h2>The composer every tier shares</h2>
+    <p>From 40K up the seed first goes through one composer. It picks a mode (aeolian, dorian, phrygian, harmonic minor, ionian or mixolydian, weighted toward the minor ones), a key, a tempo between 112 and 152 bpm, and two four-chord progressions from curated lists, filtered so no chord is diminished. It then writes four one-bar motifs: onsets are drawn against a metric template that favours downbeats, and each step moves mostly one or two scale degrees. A phrase shape such as <code>AABA</code> strings the motifs into four-bar phrases. On every beat the melody is pulled to the nearest chord tone, and the last note of a phrase lands on the root. The composer also picks a drum style, a bass rhythm and an arpeggio style.</p>
+    <p>The 40K tier writes all this into a six-channel tracker module, 64 rows per pattern, in a form such as intro, build, A, A2, break, B, B2, A3, outro. The 4K tier is the exception: its file is too small to hold this composer, so it carries its own four-chord, two-motif miniature.</p>
+
+    <h2>Shared form: one song, arranged or recomposed</h2>
+    <p>In Shared form the larger tiers keep the 40K song and spend their allowance on treatment. 400K plays every section twice and varies the repeat with passing tones, an octave lift at the phrase end, a busier bass and a new fill. 4M recomposes the material as a big-room track (intro, verse, build, drop, break, build, drop, outro). 40M recomposes it as a sonata-like piece: theme B in the relative key, a development that walks the circle of fifths with a canon, and a coda ending on a major chord.</p>
+
+    <h2>Free form: each tier writes its own structure</h2>
+    <p>In Free form the material stays the same but each tier plans its own form, as far as its allowance permits.</p>
+    <div class="tbl"><table><thead><tr><th>Tier</th><th>Levels</th><th>Themes</th><th>Transformations a return may carry</th><th>Keys and meters</th></tr></thead><tbody>
+      <tr><td>400K</td><td>1: sections</td><td>2</td><td>1 of: varied, octave up, thinned</td><td>home key, 4/4</td></tr>
+      <tr><td>4M</td><td>2: parts › sections</td><td>3</td><td>up to 2, adding: transposed, fragmented, augmented, reharmonised, half-time, in thirds</td><td>relative, subdominant, a lift; 4/4</td></tr>
+      <tr><td>40M</td><td>3: movements › sections › phrases</td><td>5</td><td>up to 3, adding: inverted, retrograde, diminished, canon, modal mixture; two themes in counterpoint</td><td>six key areas; 3/4, 7/8, 5/4 in development, variation and break</td></tr></tbody></table></div>
+    <p>A plan is a short layout string such as <code>AtB|xxb|cBA</code>. Capital letters are themes: the first appearance is a statement, later ones are returns that draw random transformations from the tier’s list. Lower-case letters are functions: <code>t</code> bridge, <code>x</code> development, <code>b</code> build, <code>d</code> drop, <code>c</code> climax, <code>k</code> break, <code>v</code> variation. Bars between <code>|</code> form a part (4M) or a movement (40M), and at 40M long sections split again into phrases of 4 to 8 bars in patterns like <code>aba</code> or <code>aab</code>. Each tier chooses among several such layouts (rondo-like, sonata-like, arch, theme and variations, build and drop), so forms differ from seed to seed.</p>
+    <p>Each section gets an energy level: a base value for its role, plus a swell that peaks about 62% of the way through the piece. Builds and bridges take the key of whatever follows them.</p>
+
+    <h2>Turning a plan into notes</h2>
+    <ul>
+      <li><b>Harmony.</b> One chord per bar from the theme’s progression. A relative-key section re-centres it, a reharmonised section swaps in a second progression, a development walks the circle of fifths, a build sits on the dominant, and statements and returns close with V–I.</li>
+      <li><b>Melody.</b> The theme’s motifs over that harmony. Transformations act here: augmented doubles every duration, diminished halves them, inverted flips each interval, retrograde plays the phrase backwards, fragmented keeps the first notes of each motif and sequences them, canon adds a second voice two beats behind and a third below, counterpoint lays theme B’s melody over theme A’s harmony.</li>
+      <li><b>Texture follows energy.</b> Low energy gets pads, a sub bass and sparse melody; middle energy adds a pulse or walking bass, arpeggios and a light groove; high energy brings four-on-the-floor or the full groove, an octave bass, stabs (4M) or choir and a counter-melody (40M).</li>
+      <li><b>Meters.</b> Drum patterns follow the bar: 3/4 as three beats, 7/8 grouped 2+2+3, 5/4 grouped 3+2.</li>
+    </ul>
+
+    <h2>Measuring structure from the notes</h2>
+    <p>The plan says what the form should be. The measurements ask what a listener could actually hear, using only the notes in the score.</p>
+    <p><b>Bar features.</b> Each bar becomes a 48-number profile: the melody’s scale degrees relative to the section’s key (12), its intervals from one note to the next, −7 to +7 semitones (15), where in the bar its notes start (8), the accompaniment’s scale degrees at lower weight (12), and drum density (1). Scale degrees and intervals mean a return in another key still matches, the way a listener recognises a transposed tune.</p>
+    <p><b>Similarity map.</b> The cosine similarity of every pair of bar profiles. The picture is smoothed along the diagonal over three bars, the usual way to make repeated passages show as stripes. The statistics use the raw values.</p>
+    <p><b>d′.</b> Take every pair of themed sections (intros, outros, builds and bridges are left out), line them up from their starts, and collect the bar-for-bar similarities. Pairs on the same theme go in one pool and pairs on different themes in the other. Then:</p>
+    <div class="eq">d′ = (mean_same − mean_different) / √((var_same + var_different) / 2)</div>
+    <p>Above about 1.5 the form is plain to hear. Between 0.7 and 1.5 it is audible but disguised. Below that the transformations largely hide it.</p>
+    <p><b>Recognisable.</b> For each return, the mean bar-for-bar similarity to its theme’s first appearance.</p>
+    <p><b>Chords.</b> Estimated per bar by matching the accompaniment’s pitch classes, with the bass weighted up, against every major, minor and diminished triad, then named against the section’s key.</p>
+
+    <h2>What the numbers can and cannot say</h2>
+    <ul>
+      <li>The features are a simple model of recognition, not a listener. Timbre, register and loudness are ignored, so a theme moved from oboe to bells still counts as itself.</li>
+      <li>Lining sections up from their starts penalises augmentation, diminution and retrograde. That is partly the point, since those are harder to hear, but the model may judge them more harshly than an attentive listener would.</li>
+      <li>d′ rests on few sections and varies from seed to seed. Compare tiers over several seeds before drawing conclusions.</li>
+      <li>The 4K song is not measured: it is generated inside the packed 4K file by its own composer.</li>
+    </ul>
+
+    <h2>Budgets</h2>
+    <p>4K, 40K and 400K must fit their file in the limit. At 4M and 40M the code is free, and everything the demo builds while it runs must fit: render targets, textures, noise volumes, particle state, reverb impulse responses and sample banks. The 4M tier renders at 800×450 to stay under 4 MB; the 40M tier spends about 18 MB on physically modelled instruments and the rest on simulation buffers.</p>
+  </article>
+</div>
+
+<script>/*CORE*/</script>
+<script>/*LIB*/</script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const TIERS=[['40k','40K',1],['400k','400K',2],['4m','4M',3],['40m','40M',4]];
+let seed=0,free=true,ti=4,form=null,zoom=2;
+const hx=v=>(v>>>0).toString(16).toUpperCase().padStart(8,'0');
+const mmss=s=>Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');
+// state from the link: #SEED[-free][-tier] or #method
+const h=(location.hash||'').slice(1),m=/^([0-9a-fA-F]{1,8})(-free)?(?:-(40k|400k|4m|40m))?$/i.exec(h);
+seed=m?parseInt(m[1],16)>>>0:(Math.random()*4294967296)>>>0;if(m){free=!!m[2];if(m[3])ti=TIERS.find(t=>t[0]===m[3].toLowerCase())[2];}
+TIERS.forEach(([id,lab,i])=>{const b=document.createElement('button');b.type='button';b.textContent=lab;b.onclick=()=>{ti=i;render();};b.dataset.i=i;$('tiers').append(b);});
+[1,2,4,8].forEach(z=>{const b=document.createElement('button');b.type='button';b.textContent=z+'×';b.onclick=()=>{zoom=z;drawRoll();mark();};b.dataset.z=z;$('zoom').append(b);});
+function mark(){[...$('tiers').children].forEach(b=>b.setAttribute('aria-pressed',+b.dataset.i===ti));[...$('zoom').children].forEach(b=>b.setAttribute('aria-pressed',+b.dataset.z===zoom));
+  $('mShared').setAttribute('aria-pressed',!free);$('mFree').setAttribute('aria-pressed',free);}
+function tab(meth){$('dissect').hidden=meth;$('method').hidden=!meth;$('tabD').setAttribute('aria-selected',!meth);$('tabM').setAttribute('aria-selected',meth);}
+$('tabD').onclick=()=>tab(false);$('tabM').onclick=()=>tab(true);if(h==='method')tab(true);
+$('mShared').onclick=()=>{free=false;compose();};$('mFree').onclick=()=>{free=true;compose();};
+$('newseed').onclick=()=>{seed=(Math.random()*4294967296)>>>0;compose();};
+$('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)){seed=v>>>0;compose();}});
+function compose(){form=composeAll(seed,free);render();}
+const R=()=>form.res[ti];
+
+function render(){mark();const r=R(),song=form.song,names=genNames(seed),st=stats(r);
+  try{history.replaceState(null,'','#'+hx(seed)+(free?'-free':'')+'-'+TIERS.find(t=>t[2]===ti)[0]);}catch(e){}
+  $('seed').value=hx(seed);$('playlink').href='./#'+hx(seed)+(free?'-free':'');
+  $('songTitle').textContent=`${names.title} by ${names.group}`;
+  $('songMeta').textContent=`${TIERS.find(t=>t[2]===ti)[1]} · ${free&&ti>1?'free form':'shared form'} · ${song.desc.key.toLowerCase()} · ${song.bpm} bpm · seed ${hx(seed)}`;
+  let notes=0;for(const e of r.ev)if(e.i!=='sweep')notes+=e.ns?e.ns.length:1;
+  const K=[[st.secs,'sections'],[st.levels,'levels'],[st.themes,'themes'],[st.xf,'transforms'],[st.keys,'key areas'],[st.meters,'meters'],[st.bars,'bars'],[mmss(r.len),'length'],[notes.toLocaleString('en-US'),'notes and hits'],[new Set(r.ev.map(e=>e.i)).size,'instruments'],[r.sim.dp==null?'–':r.sim.dp.toFixed(2),'d′ heard']];
+  $('kpis').innerHTML=K.map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('');
+  r.chords=chordsPerBar(r,song);r.pb=perBar(r);
+  formDiagram($('diag'),r,song,{detail:t=>{$('detail').textContent=t;},legend:$('legend')});$('detail').textContent='Hover or tap a section for details.';
+  drawRoll();drawSSM();drawDist();drawEnergy();drawHeat();drawThemes();drawTable();}
+
+// ---- piano roll
+const FAMCOL={counter:'#ebe8e1',chords:'#3a3e46',arpeggio:'#6d717a',bass:'#a9a59b',effects:'#5c5f68',other:'#6d717a'};
+function drawRoll(){const r=R(),song=form.song,cv=$('rollc'),box=$('roll'),dpr=Math.min(2,devicePixelRatio||1),bars=r.sim.bars;
+  const pitched=r.ev.filter(e=>!DRUM.test(e.i)&&(e.n!=null||e.ns)),all=[];for(const e of pitched)for(const n of (e.ns||[e.n]))all.push(n);
+  const lo=Math.max(24,Math.min(...all)-1),hi=Math.min(108,Math.max(...all)+1),ph=4,top=36,DR=24,H=top+(hi-lo+1)*ph+DR+6;
+  const W=Math.max(box.clientWidth-2,Math.round((box.clientWidth-2)*zoom)),px=W/r.rows;cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle='#14161a';x.fillRect(0,0,W,H);
+  // octave guides
+  x.fillStyle='#1a1d22';for(let n=lo;n<=hi;n++)if(n%12===0){x.fillRect(0,top+(hi-n)*ph,W,1);}
+  // sections and chords
+  const secAt=t=>{let s=r.secs[0];for(const q of r.secs)if(q.start<=t)s=q;return s;};
+  x.font='11px "IBM Plex Mono", monospace';x.textBaseline='middle';
+  for(const s of r.secs){const x0=s.start*px;x.fillStyle='#272a31';x.fillRect(x0,0,1,H);x.fillStyle=s.mat?MATCOL[s.mat]:'#8e919a';const w=s.len*px;if(w>30){x.fillText(s.name.slice(0,Math.floor((w-6)/6.6)),x0+4,9);}}
+  if(r.chords)bars.forEach((B,k)=>{const c=r.chords[k],w=B.len*px;x.fillStyle='#1f2228';x.fillRect(B.t0*px,top-6,1,4);if(c&&w>=22){x.fillStyle='#8e919a';x.fillText(c.rn,B.t0*px+3,24);}});
+  // notes: accompaniment first, melody on top
+  const order=e=>familyOf(e.i)==='melody'?2:familyOf(e.i)==='counter'?1:0;
+  for(const pass of [0,1,2])for(const e of pitched){if(order(e)!==pass)continue;const f=familyOf(e.i),s=secAt(e.t),col=f==='melody'?(s.mat?MATCOL[s.mat]:'#ebe8e1'):FAMCOL[f]||'#6d717a';
+    x.fillStyle=col;x.globalAlpha=f==='melody'?.95:f==='chords'?.9:.8;for(const n of (e.ns||[e.n])){if(n<lo||n>hi)continue;x.fillRect(e.t*px,top+(hi-n)*ph,Math.max(1,(e.d||1)*px-.5),ph-1);}}
+  x.globalAlpha=1;
+  // drums lane
+  const dy=top+(hi-lo+1)*ph+4;x.fillStyle='#1a1d22';x.fillRect(0,dy,W,DR);
+  for(const e of r.ev){if(!DRUM.test(e.i))continue;const lane=/kick|taiko/.test(e.i)?0:/snare|clap|tom/.test(e.i)?1:2;x.fillStyle=lane===0?'#ebe8e1':lane===1?'#a9a59b':'#5c5f68';x.fillRect(e.t*px,dy+2+lane*7,Math.max(1,px*.6),5);}
+  cv._map={px,lo,hi,ph,top,pitched,dy};
+  $('rollLegend').innerHTML=[...new Set(r.secs.filter(s=>s.mat).map(s=>s.mat))].sort().map(m=>`<span><i style="background:${MATCOL[m]}"></i>melody, theme ${m}</span>`).join('')+
+    ['counter','arpeggio','chords','bass'].filter(f=>r.ev.some(e=>familyOf(e.i)===f)).map(f=>`<span><i style="background:${FAMCOL[f]};outline:1px solid #5c5f68"></i>${f}</span>`).join('')+'<span>bottom lane: kick, snare, hats</span>';}
+const NN=['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'],noteName=n=>NN[((n%12)+12)%12]+(Math.floor(n/12)-1);
+$('rollc').addEventListener('mousemove',ev=>{const cv=$('rollc'),M=cv._map;if(!M)return;const rc=cv.getBoundingClientRect(),mx=ev.clientX-rc.left,my=ev.clientY-rc.top,t=mx/M.px,n=M.hi-Math.floor((my-M.top)/M.ph),tip=$('rollTip');
+  let hit=null;for(const e of M.pitched){if(t<e.t||t>e.t+(e.d||1))continue;for(const q of (e.ns||[e.n]))if(q===n){hit={e,q};}}
+  const r=R(),B=r.sim.bars,bi=B.findIndex((b,i)=>t>=b.t0&&(i===B.length-1||t<B[i+1].t0)),sec=B[bi]?B[bi].sec:null,beat=B[bi]?Math.floor((t-B[bi].t0)/4)+1:1;
+  tip.textContent=hit?`${hit.e.i} · ${noteName(hit.q)} · bar ${bi+1}, beat ${beat} · ${sec?sec.name:''}`:`bar ${bi+1}, beat ${beat} · ${sec?sec.name:''}${r.chords&&r.chords[bi]?' · '+r.chords[bi].name+' ('+r.chords[bi].rn+')':''}`;
+  tip.style.display='block';const box=$('roll');tip.style.left=Math.min(mx+12+0,box.scrollLeft+box.clientWidth-tip.offsetWidth-4)+'px';tip.style.top=(my+14)+'px';});
+$('rollc').addEventListener('mouseleave',()=>{$('rollTip').style.display='none';});
+
+// ---- similarity map
+function drawSSM(){const r=R(),{S,N,bars}=r.sim,cv=$('ssm'),c=Math.max(N,Math.min(720,N*4));cv.width=cv.height=c;const x=cv.getContext('2d'),im=x.createImageData(c,c);
+  const Sm=new Float32Array(N*N);for(let i=0;i<N;i++)for(let j=0;j<N;j++){let t=0,k2=0;for(let k=-1;k<=1;k++){const a=i+k,b=j+k;if(a<0||b<0||a>=N||b>=N)continue;t+=S[a*N+b];k2++;}Sm[i*N+j]=t/k2;}
+  const vals=[];for(let i=0;i<N;i++)for(let j=i+1;j<N;j++)vals.push(Sm[i*N+j]);vals.sort((p,q)=>p-q);const lo=vals[Math.floor(vals.length*.15)]||0,hi=vals[Math.floor(vals.length*.995)]||1;
+  for(let py=0;py<c;py++)for(let px=0;px<c;px++){const i=Math.floor(py/c*N),j=Math.floor(px/c*N),v=Math.max(0,Math.min(1,(Sm[i*N+j]-lo)/(hi-lo||1))),a=Math.pow(v,1.6),k=(py*c+px)*4;
+    im.data[k]=20+a*(236-20);im.data[k+1]=22+a*(172-22);im.data[k+2]=26+a*(70-26);im.data[k+3]=255;}
+  x.putImageData(im,0,0);let t=0;x.strokeStyle='rgba(235,232,225,.3)';for(const s of r.secs){t+=s.bars;const p=Math.round(t/N*c)+.5;x.beginPath();x.moveTo(p,0);x.lineTo(p,c);x.moveTo(0,p);x.lineTo(c,p);x.stroke();}
+  cv.onmousemove=ev=>{const rc=cv.getBoundingClientRect(),i=Math.floor((ev.clientY-rc.top)/rc.height*N),j=Math.floor((ev.clientX-rc.left)/rc.width*N);if(i<0||j<0||i>=N||j>=N)return;
+    $('ssmRead').textContent=`bar ${i+1} (${bars[i].sec.name}) × bar ${j+1} (${bars[j].sec.name}): ${S[i*N+j].toFixed(2)}`;};}
+
+// ---- d' distributions
+function drawDist(){const r=R(),svg=$('dist'),W=Math.max(280,svg.clientWidth||400),H=200,pl=8,pb=26,{same,diff,dp}=r.sim;svg.innerHTML='';svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('height',H);
+  if(!same||same.length<4){$('distRead').textContent='Too few themed sections to compare.';return;}
+  const all=same.concat(diff),mn=Math.min(...all),mx=Math.max(...all),nb=24,bw=(mx-mn)/nb||1,hist=a=>{const hh=new Array(nb).fill(0);for(const v of a)hh[Math.min(nb-1,Math.floor((v-mn)/bw))]++;return hh.map(c=>c/a.length);};
+  const hs=hist(same),hd=hist(diff),ym=Math.max(...hs,...hd),xs=v=>pl+(v-mn)/(mx-mn||1)*(W-2*pl),ys=v=>H-pb-v/ym*(H-pb-14);
+  svg.append(svgEl('line',{x1:pl,x2:W-pl,y1:H-pb,y2:H-pb,stroke:'#272a31'}));
+  const series=(hh,col,op)=>{let d=`M${xs(mn)} ${H-pb}`;hh.forEach((v,i)=>{d+=`L${xs(mn+i*bw)} ${ys(v)}L${xs(mn+(i+1)*bw)} ${ys(v)}`;});d+=`L${xs(mx)} ${H-pb}Z`;svg.append(svgEl('path',{d,fill:col,'fill-opacity':op,stroke:col,'stroke-width':2,'stroke-linejoin':'round'}));};
+  series(hd,'#8e919a',.15);series(hs,'#c98500',.2);
+  const mean=a=>a.reduce((p,q)=>p+q,0)/a.length,ms=mean(same),md=mean(diff);
+  for(const [v,col,lab] of [[md,'#8e919a','different'],[ms,'#c98500','same theme']]){svg.append(svgEl('line',{x1:xs(v),x2:xs(v),y1:12,y2:H-pb,stroke:col,'stroke-dasharray':'3 3'}));}
+  svg.append(svgEl('text',{x:pl,y:H-8},mn.toFixed(2)));svg.append(svgEl('text',{x:W-pl,y:H-8,'text-anchor':'end'},mx.toFixed(2)));svg.append(svgEl('text',{x:W/2,y:H-8,'text-anchor':'middle'},'similarity of lined-up bars'));
+  const hov=svgEl('rect',{x:pl,y:0,width:W-2*pl,height:H-pb,fill:'transparent'});svg.append(hov);
+  hov.addEventListener('mousemove',ev=>{const rc=svg.getBoundingClientRect(),v=mn+((ev.clientX-rc.left)/rc.width*W-pl)/(W-2*pl)*(mx-mn),i=Math.max(0,Math.min(nb-1,Math.floor((v-mn)/bw)));
+    $('distRead').innerHTML=`similarity ${(mn+i*bw).toFixed(2)}–${(mn+(i+1)*bw).toFixed(2)}: <span style="color:#c98500">same theme ${(hs[i]*100).toFixed(1)}%</span> · different ${(hd[i]*100).toFixed(1)}%`;});
+  $('distRead').innerHTML=`<span style="color:#c98500">same theme</span>: ${same.length} pairs, mean ${ms.toFixed(2)} · <span style="color:#8e919a">different themes</span>: ${diff.length} pairs, mean ${md.toFixed(2)} · <b>d′ = ${dp.toFixed(2)}</b>`;}
+
+// ---- energy and density, two charts on one bar axis
+function drawEnergy(){const r=R(),svg=$('energy'),W=Math.max(280,svg.clientWidth||400),H1=90,H2=90,gap=26,H=H1+H2+gap+18,bars=r.sim.bars,N=bars.length,xs=i=>i/N*W;svg.innerHTML='';svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('height',H);
+  const en=bars.map(b=>b.sec.energy),nt=r.pb.notes,mx=Math.max(...nt);
+  svg.append(svgEl('text',{x:0,y:10},'planned energy'));svg.append(svgEl('line',{x1:0,x2:W,y1:H1,y2:H1,stroke:'#272a31'}));
+  let d='';en.forEach((v,i)=>{const y=H1-v*(H1-18);d+=(i?'L':'M')+xs(i)+' '+y+'H'+xs(i+1);});svg.append(svgEl('path',{d,stroke:'#c98500','stroke-width':2,fill:'none'}));
+  const y2=H1+gap;svg.append(svgEl('text',{x:0,y:y2+10},'notes and hits per bar'));svg.append(svgEl('line',{x1:0,x2:W,y1:y2+H2,y2:y2+H2,stroke:'#272a31'}));
+  nt.forEach((v,i)=>{const hh=v/mx*(H2-18);svg.append(svgEl('rect',{x:xs(i)+.5,y:y2+H2-hh,width:Math.max(1,xs(1)-1.5),height:hh,fill:'#8e919a','fill-opacity':.8}));});
+  svg.append(svgEl('text',{x:W,y:H-2,'text-anchor':'end'},`${N} bars`));
+  const cross=svgEl('line',{y1:0,y2:H-14,stroke:'#ebe8e1','stroke-width':1,opacity:0});svg.append(cross);const hov=svgEl('rect',{x:0,y:0,width:W,height:H,fill:'transparent'});svg.append(hov);
+  hov.addEventListener('mousemove',ev=>{const rc=svg.getBoundingClientRect(),i=Math.max(0,Math.min(N-1,Math.floor((ev.clientX-rc.left)/rc.width*N)));cross.setAttribute('x1',xs(i+.5));cross.setAttribute('x2',xs(i+.5));cross.setAttribute('opacity',.6);
+    $('energyRead').textContent=`bar ${i+1} · ${bars[i].sec.name} · energy ${en[i].toFixed(2)} · ${nt[i]} notes and hits`;});}
+
+// ---- instrument activity
+function drawHeat(){const r=R(),svg=$('heat'),W=Math.max(280,svg.clientWidth||400),LW=74,bars=r.sim.bars,N=bars.length,inst=r.pb.inst;svg.innerHTML='';
+  const fo=FAMILY.map(f=>f[0]),names=Object.keys(inst).sort((a,b)=>fo.indexOf(familyOf(a))-fo.indexOf(familyOf(b))||a.localeCompare(b)),RH=12,H=names.length*RH+20,cw=(W-LW)/N;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('height',H);
+  names.forEach((nm,k)=>{const row=inst[nm],m=Math.max(...row)||1;svg.append(svgEl('text',{x:0,y:k*RH+9},nm));
+    row.forEach((v,i)=>{if(!v)return;svg.append(svgEl('rect',{x:LW+i*cw,y:k*RH+1,width:Math.max(.6,cw-.6),height:RH-2,fill:'#c98500','fill-opacity':.12+.88*v/m}));});});
+  svg.append(svgEl('text',{x:W,y:H-2,'text-anchor':'end'},'bars →'));
+  const hov=svgEl('rect',{x:LW,y:0,width:W-LW,height:names.length*RH,fill:'transparent'});svg.append(hov);
+  hov.addEventListener('mousemove',ev=>{const rc=svg.getBoundingClientRect(),sx=(ev.clientX-rc.left)/rc.width*W,sy=(ev.clientY-rc.top)/rc.height*H,i=Math.floor((sx-LW)/cw),k=Math.floor(sy/RH);if(i<0||i>=N||k<0||k>=names.length)return;
+    $('heatRead').textContent=`${names[k]} · bar ${i+1} (${bars[i].sec.name}) · ${inst[names[k]][i]} note${inst[names[k]][i]===1?'':'s'}`;});}
+
+// ---- themes
+function motifSvg(m,col){const W=176,H=46;let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">`;for(let i=0;i<16;i++){const on=m.on.includes(i);s+=`<rect x="${i*11}" y="${H-10}" width="9" height="8" fill="${on?col:'#272a31'}"/>`;}
+  let d=0,pts=[];m.on.forEach((t,i)=>{d+=m.mv[i]||0;pts.push([t*11+4.5,d]);});const lo=Math.min(...pts.map(p=>p[1])),hi=Math.max(...pts.map(p=>p[1]));
+  const y=v=>4+(hi-v)/((hi-lo)||1)*24;s+=`<polyline points="${pts.map(p=>p[0]+','+y(p[1])).join(' ')}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;pts.forEach(p=>{s+=`<circle cx="${p[0]}" cy="${y(p[1])}" r="2.5" fill="${col}"/>`;});return s+'</svg>';}
+function drawThemes(){const r=R(),song=form.song,used=[...new Set(r.secs.filter(s=>s.mat).map(s=>s.mat))].sort();
+  $('themes').innerHTML=used.map(L=>{const th=r.themes&&r.themes[L];if(!th)return '';const col=MATCOL[L],app=r.secs.filter(s=>s.mat===L);
+    return `<div class="theme" style="border-color:${col}"><h4>Theme ${L}</h4><dl><dt>played on</dt><dd>${(r.inst&&r.inst[L])||'lead'}</dd><dt>phrase shape</dt><dd>${th.shape} (from motifs ${[...new Set(th.shape)].join(', ')})</dd><dt>progression</dt><dd>${progName(song,th.prog)}</dd></dl>
+      <div style="display:flex;gap:14px;flex-wrap:wrap">${['A','B'].map(k=>`<div><div class="note" style="font-size:11px">motif ${k}: onsets and contour</div>${motifSvg(th.motifs[k],col)}</div>`).join('')}</div>
+      <ul>${app.map(s=>`<li><b>${s.name}</b> · ${ROLEWORD[s.role]||s.role}${s.xf.filter(x=>x!=='meter').length?' · '+s.xf.filter(x=>x!=='meter').map(x=>XF_LABEL[x]||x).join(', '):''}${r.sim.recog.has(s)?` · recognisable ${r.sim.recog.get(s).toFixed(2)}`:''}</li>`).join('')}</ul></div>`;}).join('')||'<p class="note">No themed sections.</p>';}
+
+// ---- section table
+function drawTable(){const r=R(),song=form.song;let notesBy=new Map();const B=r.sim.bars;B.forEach((b,i)=>notesBy.set(b.sec,(notesBy.get(b.sec)||0)+r.pb.notes[i]));
+  $('secTable').innerHTML='<thead><tr><th class="n">#</th><th>Section</th><th>Role</th><th>Theme</th><th>Transformations</th><th>Key</th><th>Meter</th><th class="n">Bars</th><th class="n">Starts</th><th class="n">Energy</th><th class="n">Notes</th><th class="n">Recognisable</th></tr></thead><tbody>'+
+    r.secs.map((s,i)=>`<tr><td class="n">${i+1}</td><td>${s.mat?`<i class="chip" style="background:${MATCOL[s.mat]}"></i>`:'<i class="chip" style="background:#5c5f68"></i>'}${s.name}</td><td>${ROLEWORD[s.role]||s.role}</td><td>${s.mat||'–'}</td><td>${s.xf.filter(x=>x!=='meter').map(x=>XF_LABEL[x]||x).join(', ')||'–'}</td><td>${keyName(song,s.key||0)}${s.rel?' (relative)':''}</td><td>${meterName(s.meter)}</td><td class="n">${s.bars}</td><td class="n">${mmss(timeOf(song,s.start))}</td><td class="n">${s.energy.toFixed(2)}</td><td class="n">${notesBy.get(s)||0}</td><td class="n">${r.sim.recog.has(s)?r.sim.recog.get(s).toFixed(2):'–'}</td></tr>`).join('')+'</tbody>';}
+
+let rz=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(form&&!$('dissect').hidden)render();},200);});
+$('tabD').addEventListener('click',()=>setTimeout(render,0));
+compose();
+})();
+</script>
+</body></html>

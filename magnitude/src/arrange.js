@@ -54,10 +54,10 @@ function Conductor(ac,song,score,play){
   const ev=score.ev,ts=ev.map(e=>timeOf(song,e.t));let i=0,t0=0,timer=0;
   const kicks=[],snares=[],leads=[];ev.forEach((e,k)=>{if(e.i==='kick'||e.i==='taiko')kicks.push(ts[k]);else if((e.i==='snare'||e.i==='clap')&&e.v>.5)snares.push(ts[k]);else if(/^lead|bell|oboe|keys/.test(e.i))leads.push(ts[k]);});
   const dur=timeOf(song,score.rows)+1.5;
-  const pump=()=>{const now=ac.currentTime;while(i<ev.length&&t0+ts[i]<now+.3){const e=ev[i],tt=t0+ts[i];if(tt>now-.05)play(e,tt,timeOf(song,e.t+(e.d||1))-ts[i]);i++;}};
+  const pump=()=>{const now=ac.currentTime;while(i<ev.length&&t0+ts[i]<now+1.2){const e=ev[i],tt=t0+ts[i];if(tt>now-.05)play(e,tt,timeOf(song,e.t+(e.d||1))-ts[i]);i++;}};
   const last=(arr,t)=>{let lo=0,hi=arr.length-1,r=-1;while(lo<=hi){const m=(lo+hi)>>1;if(arr[m]<=t){r=m;lo=m+1;}else hi=m-1;}return r<0?-99:arr[r];};
   const tk=2.5/song.bpm,a=song.swing?7:6;
-  return{dur,start(at){t0=at;i=0;clearInterval(timer);timer=setInterval(pump,25);pump();},stop(){clearInterval(timer);},
+  return{dur,start(at){t0=at;i=0;clearInterval(timer);timer=setInterval(pump,50);pump();},stop(){clearInterval(timer);},
     pos(){const t=ac.currentTime-t0,tt=Math.max(0,t),p=Math.floor(tt/(12*tk)),rem=tt-p*12*tk,row=p*2+(rem<a*tk?rem/(a*tk):1+(rem-a*tk)/((12-a)*tk));
       let si=0;for(let k=0;k<score.secs.length;k++)if(row>=score.secs[k].start)si=k;const S=score.secs[si];
       return{t,row,sec:si,secT:t-timeOf(song,S.start),secLen:timeOf(song,S.start+S.len)-timeOf(song,S.start),name:S.name,kind:S.role||S.name,prog:(row-S.start)/S.len,

@@ -157,5 +157,5 @@ function arrangeFree(song,L){
       if(n.role==='outro'){const fin=tones(0);add('piano',len-32,{n:48+pcl(fin.root),d:32,v:.6});add('timp',len-32,{n:36+pcl(song.key),v:.8});}}
     R0+=len;}
   ev.sort((a,b)=>a.t-b.t);
-  return{ev,secs,rows:R0,tree,free:true};
+  return{ev,secs,rows:R0,tree,free:true,themes:TH,inst:INST};
 }
