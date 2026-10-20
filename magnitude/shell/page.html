@@ -27,6 +27,7 @@ button:hover{border-color:var(--muted)}
 :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .stage{position:relative;aspect-ratio:16/9;max-width:100%;background:#000;border:1px solid var(--line);overflow:hidden}
 .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.stage.paused::after{content:"Visuals paused while you read. The music keeps playing.";position:absolute;left:12px;bottom:10px;font:12px var(--mono);color:var(--fg);background:rgba(12,13,16,.8);padding:4px 8px;pointer-events:none}
 .stagecap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 18px;font:13px var(--mono);color:var(--muted);margin-top:-12px}
 .stagecap b{color:var(--fg);font-weight:500}
 .stagecap b.warn{color:var(--amber)}
@@ -241,7 +242,11 @@ function load(){const t=T[tier],f=$('frame');live={};const nf=f.cloneNode();nf.s
   $('sub').textContent=free?'One seed, five size limits, thirty years of demo scene. Same material at every tier; each tier writes its own form.':'One seed, five size limits, thirty years of demo scene. Same song at every tier from 40K up.';
   drawForm();drawMeter();drawCols();}
 // when the stage scrolls out of view the demo stops drawing, so scrolling and reading never starve the music
-let stageShown=true;try{new IntersectionObserver(es=>{for(const e of es){stageShown=e.intersectionRatio>0.02;try{$('frame').contentWindow.postMessage({demoseedCmd:'visible',v:stageShown},'*');}catch(_){}}},{threshold:[0,0.02,0.1]}).observe($('stage'));}catch(e){}
+// visuals draw only while the whole stage is in view and the page is still; any scroll away from it freezes the picture
+let stageShown=true,inView=true,scrolling=0;
+const sendVis=()=>{const v=inView&&!scrolling;if(v===stageShown)return;stageShown=v;try{$('frame').contentWindow.postMessage({demoseedCmd:'visible',v},'*');}catch(_){}$('stage').classList.toggle('paused',!v);};
+try{new IntersectionObserver(es=>{for(const e of es)inView=e.intersectionRect.height>=0.6*Math.min(e.boundingClientRect.height,innerHeight);sendVis();},{threshold:[0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1]}).observe($('stage'));}catch(e){}
+addEventListener('scroll',()=>{clearTimeout(scrolling);scrolling=setTimeout(()=>{scrolling=0;sendVis();},250);sendVis();},{passive:true});
 function pick(i){tier=i;try{localStorage.setItem('oom-tier',i);}catch(e){}load();}
 function setSeed(s){seed=s>>>0;form=composeAll(seed,free);load();}
 function setFree(f){free=f;try{localStorage.setItem('oom-free',f?'1':'0');}catch(e){}form=composeAll(seed,free);load();}
