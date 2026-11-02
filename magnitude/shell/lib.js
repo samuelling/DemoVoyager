@@ -25,13 +25,15 @@ function composeAll(sd,mode,K){if(mode===true)mode='free';if(!mode)mode='shared'
   const k4=[['intro','intro',.15],['groove','build',.4],['A','A',.7],['A','A',.7],['break','break',.25],['B','B',.7],['B','B',.7],['groove','build',.5],['A lift','A',.85],['outro','outro',.3]];
   res.push({secs:k4.map(([n,m,e],i)=>({name:n,start:i*64,len:64,bars:4,meter:16,role:/^[AB]/.test(m)?(i===2||i===5?'state':'ret'):m,mat:/^[AB]/.test(m)?m:null,xf:n==='A lift'?['transpose']:[],key:n==='A lift'?2:0,energy:e})),rows:640,levels:1,ev:null,len:null});
   {const S0=song0,secs=sharedSecs(S0.sections.map(s=>[s.name,ROWS]),S0,0);res.push({secs,rows:S0.sections.length*ROWS,levels:1,ev:trackerEvents(S0),len:timeOf(S0,S0.sections.length*ROWS),themes:sharedThemes(S0),inst:{A:'lead',B:'lead'},song:S0});}
-  for(const L of [1,2,3]){const kk=K[mode]&&K[mode][L],sc=mode==='era'?arrangeEra(song,L,kk):mode==='free'?arrangeFree(song,L,kk):arrange(song,L);
-    const secs=free?sc.secs.map(x=>Object.assign({},x,{tr:x.rel?x.key-(song.minor?3:-3):x.key,mat:/intro|outro|build|bridge/.test(x.role)?null:x.mat})):sharedSecs(sc.secs.map(x=>[x.name,x.len]),song,L);
-    const levels=free?(sc.tree.kids.some(g=>g.kids.some(k=>k.kids))?3:sc.tree.kids.some(g=>g.label)?2:1):1;
-    res.push({secs,rows:sc.rows,levels,ev:sc.ev,tree:free?sc.tree:null,song,knobs:sc.knobs||null,len:timeOf(song,sc.rows),themes:free?sc.themes:sharedThemes(song),inst:free?sc.inst:[null,{A:'lead',B:'lead'},{A:'lead',B:'keys'},{A:'oboe',B:'bell'}][L]});}
-  for(const r of res)r.sim=r.ev?similarity(r,song):null;
-  for(const r of res)if(r.sim)r.idiom=idiomStats(r);
+  for(const L of [1,2,3])res.push(composeOne(song,L,mode,K[mode]&&K[mode][L],true));
+  res[1].sim=similarity(res[1],res[1].song);res[1].idiom=idiomStats(res[1]);
   return{song,res,free,mode};}
+// one tier's song, described, measured and summarised (used for every tier, and for the knob sweeps)
+function composeOne(song,L,mode,kk,full){const free=mode!=='shared',sc=mode==='era'?arrangeEra(song,L,kk):mode==='free'?arrangeFree(song,L,kk):arrange(song,L);
+  const secs=free?sc.secs.map(x=>Object.assign({},x,{tr:x.rel?x.key-(song.minor?3:-3):x.key,mat:/intro|outro|build|bridge/.test(x.role)?null:x.mat})):sharedSecs(sc.secs.map(x=>[x.name,x.len]),song,L);
+  const levels=free?(sc.tree.kids.some(g=>g.kids.some(k=>k.kids))?3:sc.tree.kids.some(g=>g.label)?2:1):1;
+  const r={secs,rows:sc.rows,levels,ev:sc.ev,tree:free?sc.tree:null,song,knobs:sc.knobs||null,len:timeOf(song,sc.rows),themes:free?sc.themes:sharedThemes(song),inst:free?sc.inst:[null,{A:'lead',B:'lead'},{A:'lead',B:'keys'},{A:'oboe',B:'bell'}][L]};
+  r.sim=similarity(r,song);r.idiom=idiomStats(r);return r;}
 
 // bar-by-bar similarity of what is actually played, in the terms a listener recognises a tune by:
 // melody intervals and scale degrees (so a transposed return still matches), melody rhythm, harmony as scale degrees, drum density
@@ -205,3 +207,25 @@ const KNOB_UI={
 const knobsFor=(mode,L)=>mode==='free'?KNOB_UI.free:mode==='era'?KNOB_UI.era[L]||[]:[];
 const encodeKnobs=K=>{try{const j=JSON.stringify(K);if(j==='{}')return '';return btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}catch(e){return '';}};
 const decodeKnobs=s=>{try{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(escape(atob(s))));}catch(e){return {};}};
+
+// ---- typicality: how far a song sits from its era's prototypical demoscene song, in a space of measured features
+// Each feature is measured from the notes and the form, never read off the knobs. PROTO holds, per era, the mean and spread of
+// every feature over many seeds at the era's own settings, and a weight per feature: how strongly it separates this era from the others.
+const FEATURES=[
+  ['reps','repetition','share of bars that nearly repeat an earlier bar',r=>r.idiom.reps,.04],
+  ['layers','layers playing','parts playing in an average bar',r=>r.idiom.meanLayers,.3],
+  ['churn','layer changes','how often the number of parts changes, per 8 bars',r=>r.idiom.changes/r.sim.N*8,.25],
+  ['phrase','section length','average section length in bars',r=>r.idiom.avgPhrase,1],
+  ['contrast','energy contrast','average energy jump from one section to the next',r=>{const e=r.secs.map(x=>x.energy);let t=0;for(let i=1;i<e.length;i++)t+=Math.abs(e[i]-e[i-1]);return t/Math.max(1,e.length-1);},.04],
+  ['drums','drum density','drum hits per bar',r=>{let n=0;for(const e of r.ev)if(DRUM.test(e.i))n++;return n/r.sim.N;},1.5],
+  ['odd','odd meters','share of bars outside 4/4',r=>r.secs.reduce((a,x)=>a+(x.meter!==16?x.bars:0),0)/r.sim.N,.04],
+  ['xform','transformation','transformations per themed section',r=>{const t=r.secs.filter(x=>x.mat);return t.length?t.reduce((a,x)=>a+x.xf.filter(y=>y!=='meter'&&y!=='sub').length,0)/t.length:0;},.15],
+  ['keys','key areas','distinct keys visited',r=>new Set(r.secs.map(x=>(x.key||0)+(x.rel?'r':''))).size,.4],
+  ['pace','pace of form','sections per minute',r=>r.secs.length/(r.len/60),.25],
+  ['audible','audible form','d′: how clearly same-theme sections sound alike',r=>r.sim.dp,.3]];
+const PROTO=/*PROTO*/{};
+const ERA_OF_TIER={1:'1997',2:'2003',3:'2012',4:'2026'},ERA_NAME={'1997':'1997 tracker','2003':'2003 trance','2012':'2012 EDM','2026':'2026 cinematic'};
+function featureVec(r){return FEATURES.map(f=>{const v=f[3](r);return v==null||!isFinite(v)?null:v;});}
+// z-score per feature against the era, and a weighted distance (weights sum to 1, so 1.0 ≈ one spread away on average)
+function typicality(r,era){const P=PROTO[era];if(!P)return null;const v=featureVec(r),z=v.map((x,i)=>x==null?0:(x-P.mu[i])/P.sd[i]);
+  let d=0;z.forEach((q,i)=>d+=P.w[i]*q*q);return{v,z,D:Math.sqrt(d),P};}
