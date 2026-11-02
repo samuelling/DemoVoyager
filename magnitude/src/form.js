@@ -24,7 +24,9 @@ const FREE_SPEC={
 const XF_LABEL={vary:'varied',octave:'octave up',thin:'thinned',transpose:'transposed',fragment:'fragmented',augment:'augmented',reharm:'reharmonised',halftime:'half-time',
   harmony:'in thirds',invert:'inverted',retro:'retrograde',diminish:'diminished',canon:'canon',modal:'modal mixture',meter:'odd meter',sub:'answer',sequence:'sequence',combine:'counterpoint'};
 
-function arrangeFree(song,L){
+function arrangeFree(song,L,knobs){
+  // knobs: optional overrides; kv() returns the override if set, otherwise the seed's own value, and records the seed's value
+  const K=knobs||{},used={},kv=(id,v)=>{used[id]=v;return K[id]!=null?K[id]:v;};
   const SP=FREE_SPEC[L],R=Rng(hashSeed(song.seed,600+L)),M=song.mat,minor=song.minor,up=M.modUp||2;
   const okIn=(iv,d)=>degS(iv,d+4)-degS(iv,d)===7;
   const pool=(minor?PROG_MIN:PROG_MAJ).filter(p=>p.every(d=>okIn(song.iv,d)));
@@ -37,27 +39,32 @@ function arrangeFree(song,L){
   for(let k=2;k<SP.themes;k++){const a=makeMotif(R),b=makeMotif(R);TH[LETTERS[k]]=mkTheme({A:a,B:b,C:varyMotif(R,a)},R.pick(['AABA','ABAC','AAAB','ABAB','AABC']),R.pick(pool.length?pool:[M.P1]),R.pick([0,2,4]));}
   const INST=L===1?{A:'lead',B:'harm'}:L===2?{A:'lead',B:'keys',C:'harm'}:{A:'oboe',B:'bell',C:'piano',D:'lead',E:'keys'};
   // ---- 1. plan: tokens -> nodes, grouped into parts / movements
-  const [pc,...gnames]=R.pick(SP.pieces),groups=pc.split('|');
+  const pk=R.pick(SP.pieces);let layout=kv('layout',pk[0]);if(typeof layout!=='string'||!/^[A-Ebdcktxv|]+$/.test(layout)||!/[A-E]/.test(layout))layout=pk[0];
+  const gnames=layout===pk[0]?pk.slice(1):layout.split('|').map((_,i,a)=>a.length>1?(L===3?'Movement ':'Part ')+(i+1):null),groups=layout.split('|').filter(g=>g.length);
+  // themes the layout names beyond this tier's own get material from their own streams, so the rest of the seed is undisturbed
+  for(const ch of new Set(layout.replace(/[^A-E]/g,'')))if(!TH[ch]){const R2=Rng(hashSeed(song.seed,650+LETTERS.indexOf(ch))),a=makeMotif(R2),b=makeMotif(R2);
+    TH[ch]=mkTheme({A:a,B:b,C:varyMotif(R2,a)},R2.pick(['AABA','ABAC','AAAB','ABAB','AABC']),R2.pick(pool.length?pool:[M.P1]),R2.pick([0,2,4]));if(!INST[ch])INST[ch]=INST.A;}
+  const NX=kv('nx',SP.nx),XF=kv('xf',SP.xf),KEYS=kv('keys',SP.keys),ODD=kv('oddMeter',L===3?55:0)/100,SPLIT=kv('split',L===3?80:0)/100,LS=kv('lenScale',1),PEAK=kv('arcPeak',62)/100,AMP=kv('arcAmp',18)/100;
   const keyOf={A:{tr:0}},seen={},nodes=[],tree={label:'piece',kids:[]};let vcount=0,drops=0,xcount=0;
   const keyFrom=k=>k==='rel'?{tr:0,rel:true}:k==='up'?{tr:up}:{tr:k>6?k-12:k};
-  const pickXf=(n,ban=[])=>{const pool2=SP.xf.filter(x=>!ban.includes(x)),out=[];while(out.length<n&&pool2.length){const x=pool2.splice(R.ri(0,pool2.length-1),1)[0];
+  const pickXf=(n,ban=[])=>{const pool2=XF.filter(x=>!ban.includes(x)),out=[];while(out.length<n&&pool2.length){const x=pool2.splice(R.ri(0,pool2.length-1),1)[0];
     if((x==='augment'&&out.includes('diminish'))||(x==='diminish'&&out.includes('augment')))continue;out.push(x);}return out;};
-  const lenOf=role=>R.pick((SP.lens[role]||SP.lens.state));
+  const lenOf=role=>Math.max(2,Math.round(R.pick((SP.lens[role]||SP.lens.state))*LS/2)*2);
   groups.forEach((g,gi)=>{const grp={label:gnames[gi]||null,kids:[]};
     for(const ch of g){let n;
       if(/[A-E]/.test(ch)){const first=!seen[ch];seen[ch]=(seen[ch]||0)+1;
-        if(first){if(!keyOf[ch])keyOf[ch]=SP.keys.length>1?keyFrom(R.pick(SP.keys.filter(k=>k!==0))):{tr:0};
+        if(first){if(!keyOf[ch]){const ks=KEYS.filter(k=>k!==0&&k!=='0');keyOf[ch]=ks.length?keyFrom(R.pick(ks)):{tr:0};}
           n={role:'state',mat:ch,xf:[],key:keyOf[ch],bars:lenOf('state')};}
-        else{const xf=pickXf(R.ri(1,SP.nx));n={role:'ret',mat:ch,xf,prime:seen[ch]-1,bars:lenOf('ret'),
+        else{const xf=pickXf(Math.round(R.ri(1,SP.nx)*NX/SP.nx));n={role:'ret',mat:ch,xf,prime:seen[ch]-1,bars:lenOf('ret'),
           key:xf.includes('transpose')?{tr:R.pick([5,-2,up,3])}:ch==='A'?{tr:0}:keyOf[ch]};}}
       else if(ch==='b')n={role:'build',mat:'A',xf:[],bars:lenOf('build')};
       else if(ch==='d'){n={role:'drop',mat:'A',xf:drops?['octave']:[],key:{tr:drops?up:0},bars:lenOf('drop')};drops++;}
       else if(ch==='c'){n={role:L===3?'climax':'drop',mat:'A',xf:L===3&&seen.B?['combine']:[],key:{tr:drops?0:up},bars:lenOf(L===3?'combine':'drop')};if(L===3)n.bars=lenOf('climax');drops++;}
-      else if(ch==='k')n={role:'break',mat:seen.B?'B':'A',xf:SP.xf.includes('augment')?['augment']:[],key:{tr:0},bars:lenOf('break')};
+      else if(ch==='k')n={role:'break',mat:seen.B?'B':'A',xf:XF.includes('augment')?['augment']:[],key:{tr:0},bars:lenOf('break')};
       else if(ch==='t')n={role:'bridge',mat:'A',xf:['fragment'],bars:lenOf('bridge')};
       else if(ch==='x'){n={role:'development',mat:xcount%2&&seen.B?'B':'A',xf:['fragment','sequence'].concat(pickXf(1,['vary','thin','octave','transpose','fragment'])),key:{tr:0},bars:lenOf('development')};xcount++;}
       else if(ch==='v'){vcount++;n={role:'variation',mat:'A',xf:pickXf(Math.min(3,vcount),['transpose']),key:{tr:0},var:vcount,bars:lenOf('variation')};}
-      if(L===3&&/development|variation|break/.test(n.role)&&R.chance(.55)){n.meter=R.pick([12,14,20]);n.xf.push('meter');}
+      if((L===3||ODD>0)&&/development|variation|break/.test(n.role)&&R.f()<ODD){n.meter=R.pick([12,14,20]);n.xf.push('meter');}
       if(n.xf.includes('modal')&&n.role!=='ret'&&n.role!=='variation')n.xf=n.xf.filter(x=>x!=='modal');
       n.meter=n.meter||16;grp.kids.push(n);nodes.push(n);}
     tree.kids.push(grp);});
@@ -69,11 +76,12 @@ function arrangeFree(song,L){
   // energy: a base per role, shaped by an arc that peaks near the golden section
   const BASE={intro:.15,state:.5,ret:.65,build:.6,drop:.95,climax:1,break:.2,bridge:.45,development:.6,variation:.45,outro:.25};
   nodes.forEach((n,i)=>{const p=i/(nodes.length-1);let e=BASE[n.role]+(n.role==='state'&&n.mat!=='A'?.05:0)+(n.var?n.var*.1:0);
-    if(!/drop|climax|break|intro|outro/.test(n.role))e+=.18*Math.exp(-Math.pow((p-.62)/.25,2))-.05;n.energy=Math.max(.1,Math.min(1,e));});
+    if(!/drop|climax|break|intro|outro/.test(n.role))e+=AMP*Math.exp(-Math.pow((p-PEAK)/.25,2))-.05;n.energy=Math.max(.1,Math.min(1,e));});
   // 40M: long statements and returns split into phrases (a third level)
   const leaves=[];let sg=0;
   for(const grp of tree.kids){grp.kids=grp.kids.map(n=>{n.sg=sg++;
-    if(L===3&&/state|ret|variation/.test(n.role)&&n.bars>=12&&R.chance(.8)){const pat=R.pick(n.bars===12?[[[6,6],'aa′'],[[4,4,4],'aba'],[[4,8],'ab']]:[[[8,8],'aa′'],[[4,4,8],'aab'],[[8,4,4],'abb′'],[[4,4,4,4],'aba′b']]);
+    if((L===3||SPLIT>0)&&/state|ret|variation/.test(n.role)&&n.bars>=12&&R.f()<SPLIT){const pat=R.pick(n.bars===12?[[[6,6],'aa′'],[[4,4,4],'aba'],[[4,8],'ab']]:[[[8,8],'aa′'],[[4,4,8],'aab'],[[8,4,4],'abb′'],[[4,4,4,4],'aba′b']]);
+      if(n.bars!==12&&n.bars!==16){const k=n.bars/16;pat[0]=pat[0].map(b=>Math.max(2,Math.round(b*k/2)*2));pat[0][pat[0].length-1]+=n.bars-pat[0].reduce((a,b)=>a+b,0);}
       const kids=pat[0].map((b,j)=>{const c=pat[1].replace(/′/g,'')[j],pr=pat[1].split(/(?=[ab])/)[j].includes('′');
         return Object.assign({},n,{bars:b,xf:n.xf.concat(c==='b'?['sub']:[],pr?['vary']:[]),phrase:c+(pr?'′':''),energy:Math.min(1,n.energy+j*.04)});});
       kids.forEach(k=>leaves.push(k));return{label:`${n.mat}: ${pat[1]}`,kids,node:n};}
@@ -83,7 +91,7 @@ function arrangeFree(song,L){
   for(const n of leaves){const m=n.mat+(n.prime?PR[Math.min(4,n.prime)]:'');
     n.name=n.role==='state'?`theme ${n.mat}`+(n.phrase?` ${n.phrase}`:''):n.role==='ret'?m+(n.phrase?` ${n.phrase}`:''):n.role==='variation'?`variation ${n.var}`+(n.phrase?` ${n.phrase}`:''):n.role;}
   const out=renderPlan(song,L,leaves,TH,INST,R);
-  return Object.assign(out,{tree,free:true,themes:TH,inst:INST});
+  return Object.assign(out,{tree,free:true,themes:TH,inst:INST,knobs:used});
 }
 
 
@@ -156,7 +164,7 @@ function renderPlan(song,L,leaves,TH,INST,R){
         else if(mode==='half'){if(s===0)add('kick',t,{v:1});if(s===Math.floor(BL/2))add('snare',t,{v:1});if(s%2===0)add('hat',t,{v:.5});}
         else if(mode==='hats'){if(s%2===0)add('hat',t,{v:s%4?.4:.6});}
         else if(mode==='tribal'){if(s===0||s===6||s===10)add('taiko',t,{v:s?.6:1});if(s%4===2)add('shaker',t,{v:.4});}
-        else if(mode==='roll'){const q=t/len,step=q<.25?4:q<.5?2:q<.75?1:.5,gap=b===bars-1&&s>=BL-4,sv=.3+.7*q;if(!gap&&b<bars-1&&s%4===0)add('kick',t,{v:.8});if(!gap&&s%Math.max(1,step)===0){add(L>=2?'clap':'snare',t,{v:sv});if(step<1)add('snare',t+.5,{v:sv*.8});}}
+        else if(mode==='roll'){const q=t/len,step=q<.25?4:q<.5?2:q<.75?1:.5,gap=b===bars-1&&s>=BL-4*(n.gap??1),sv=.3+.7*q;if(!gap&&b<bars-1&&s%4===0)add('kick',t,{v:.8});if(!gap&&s%Math.max(1,step)===0){add(L>=2?'clap':'snare',t,{v:sv});if(step<1)add('snare',t+.5,{v:sv*.8});}}
         if(inF)add(R.chance(.5)?'tom':'snare',t,{v:.5+.1*(s-BL+4),n:[50,47,45,43][s-BL+4]});}}
     if(mode==='four'||mode==='groove'){if(n.role==='drop'||n.role==='climax'||R.chance(.5))add('crash',0,{v:1});}
     // effects by era

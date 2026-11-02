@@ -78,6 +78,49 @@ h2{margin:0 0 10px;font:600 11px var(--mono);letter-spacing:.14em;text-transform
 .seg2{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
 .seg2 button{border:0;border-radius:0;background:var(--panel);color:var(--muted);padding:8px 12px}
 .seg2 button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+
+/* behind-the-scenes drawer */
+.knobsbtn{border-color:var(--amber);color:var(--amber);position:relative}
+.knobsbtn:hover{background:var(--amber-soft)}
+.knobsbtn.mod::after{content:"";position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--amber);border:2px solid var(--bg)}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);box-sizing:border-box;background:#111317;border-left:1px solid var(--line);z-index:60;overflow-y:auto;overscroll-behavior:contain;
+  padding:calc(18px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 22px;
+  transform:translateX(102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;box-shadow:-20px 0 40px rgba(0,0,0,.45);display:grid;gap:18px;align-content:start}
+.drawer.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dtitle{margin:0;font:800 24px/1.05 var(--display);font-variation-settings:"wdth" 118;text-transform:uppercase;color:var(--fg);letter-spacing:0}
+.dsub{margin:6px 0 0;font:12px var(--mono);color:var(--amber)}
+.dclose{flex:none;width:34px;height:34px;padding:0;font:400 22px/1 var(--body)}
+.dintro{margin:0;font:13.5px/1.55 var(--body);color:var(--muted)}
+.dsec{display:grid;gap:14px}
+.dsec>h3{margin:0;font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:6px;display:flex;justify-content:space-between}
+.dsec>h3 span{letter-spacing:0;text-transform:none;color:var(--dim)}
+.knob{display:grid;gap:5px}
+.knob .kh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.knob label,.knob .kl{font:600 14px var(--body);color:var(--fg)}
+.knob.mod .kl::before,.knob.mod label::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);margin-right:7px;vertical-align:1px}
+.knob .kv{font:500 13px var(--mono);color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap}
+.knob .kp{font:12px/1.45 var(--mono);color:var(--dim)}
+.knob .ks{display:flex;justify-content:space-between;gap:8px;font:11px var(--mono);color:var(--dim)}
+.knob .ks button{background:none;border:0;padding:0;font:11px var(--mono);color:var(--amber);text-decoration:underline;cursor:pointer}
+.knob input[type=range]{width:100%;accent-color:var(--amber)}
+.knob select,.knob input[type=text]{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);color:var(--fg);font:500 14px var(--mono);padding:7px 9px;border-radius:3px}
+.knob input[type=text].bad{border-color:#d9573b}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:500 12px var(--mono);padding:5px 9px;border-radius:14px;background:var(--panel);color:var(--muted);border:1px solid var(--line)}
+.chips button[aria-pressed="true"]{background:var(--amber-soft);color:var(--fg);border-color:var(--amber)}
+.switch{display:inline-flex;align-items:center;gap:8px;font:13px var(--mono);color:var(--muted);cursor:pointer}
+.switch input{accent-color:var(--amber);width:16px;height:16px}
+.dnote{margin:0;font:13px/1.5 var(--mono);color:var(--muted)}
+.dnote button{margin:8px 8px 0 0}
+.dprev svg{display:block;width:100%}
+.dprev text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+@media (max-width:640px){.drawer{top:auto;left:0;width:100%;height:66vh;height:66dvh;border-left:0;border-top:1px solid var(--line);transform:translateY(102%);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-shadow:0 -20px 40px rgba(0,0,0,.45)}}
+.dfoot{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom,0px));background:#111317;border-top:1px solid var(--line);padding:12px 0 calc(8px + env(safe-area-inset-bottom,0px));display:grid;gap:10px}
+.deffect{font:12.5px/1.6 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.deffect b{color:var(--fg);font-weight:500}.deffect .up{color:var(--amber)}
+.dbtns{display:flex;gap:8px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
 /* form diagram */
 .formhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 18px;margin-bottom:10px}
 .formhead h2{margin:0}
@@ -126,6 +169,7 @@ tr.cur td{color:var(--amber)}
       <button id="nextsong" type="button" title="Fade to the next song (400K and up)">Next song</button>
       <button id="full" type="button">Fullscreen</button>
       <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared" aria-pressed="true">Shared form</button><button type="button" id="mFree" aria-pressed="false">Free form</button><button type="button" id="mEra" aria-pressed="false">Era idioms</button></span>
+      <button id="knobsBtn" class="knobsbtn" type="button" aria-expanded="false" aria-controls="drawer">Behind the scenes</button>
     </div>
   </header>
 
@@ -159,6 +203,13 @@ tr.cur td{color:var(--amber)}
   <p class="note" id="note"></p>
 </div>
 
+<aside id="drawer" class="drawer" aria-label="Behind the scenes">
+  <div class="dhead"><div><h2 class="dtitle">Behind the scenes</h2><p class="dsub" id="dsub"></p></div><button type="button" class="dclose" id="dclose" aria-label="Close">×</button></div>
+  <p class="dintro">These are the knobs that define this tier’s song. The seed sets each one; move any of them and the form, the analysis and the music follow. A dot marks a knob you have moved.</p>
+  <div class="dprev"><svg id="dprev" aria-label="The form, the seed's and yours"></svg></div>
+  <div id="dbody" class="dsec" style="gap:26px"></div>
+  <div class="dfoot"><div class="deffect" id="deffect">Nothing changed yet: this is the seed’s own song.</div><div class="dbtns"><button type="button" id="dresetTier">Reset this tier</button><button type="button" id="dresetAll">Reset everything</button></div></div>
+</aside>
 <script>/*CORE*/</script>
 <script>/*LIB*/</script>
 <script>
@@ -198,7 +249,7 @@ const T=[
 const fmt=b=>b>=MB?(b/MB).toFixed(b>=10*MB?1:2)+' MB':b>=KB?(b/KB).toFixed(b>=10*KB?1:2)+' KB':b+' B';
 const X=b=>Math.max(0,Math.min(1,(Math.log10(b)-3)/(Math.log10(100*MB)-3)))*100;
 const $=id=>document.getElementById(id);
-let tier=1,seed=0,started=false,live={},form=null,mode='shared';
+let tier=1,seed=0,started=false,live={},form=null,mode='shared',K={},form0=null;
 try{const k=localStorage.getItem('oom-tier');if(k!==null&&T[+k])tier=+k;const mm=localStorage.getItem('oom-mode');if(['shared','free','era'].includes(mm))mode=mm;}catch(e){}
 const hm=/^#?([0-9a-fA-F]{1,8})(-free|-era)?$/.exec(location.hash||'');seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;if(hm)mode=hm[2]?hm[2].slice(1):'shared';
 const sfx=()=>mode==='shared'?'':'-'+mode;
@@ -207,7 +258,7 @@ const sfx=()=>mode==='shared'?'':'-'+mode;
 for(const [b,l] of [[KB,'1 KB'],[10*KB,'10 KB'],[100*KB,'100 KB'],[MB,'1 MB'],[10*MB,'10 MB'],[100*MB,'100 MB']]){const d=document.createElement('div');d.className='tick';d.style.left=X(b)+'%';d.innerHTML='<span>'+l+'</span>';$('axis').appendChild(d);}
 T.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.className='stop';b.style.left=X(t.ceil)+'%';b.innerHTML=`<span class="sz">${t.label}</span><span class="era">${t.era}</span>`;b.onclick=()=>pick(i);t.el=b;$('stops').appendChild(b);});
 
-let playX=null;
+let playX=null;const updateDrawerMarksSafe=()=>{};
 function drawDiagram(){playX=formDiagram($('diag'),form.res[tier],form.song,{detail:t=>{$('detail').textContent=t;},legend:$('legend')});}
 
 function drawSSM(){const r=form.res[tier],cv=$('ssm'),x=cv.getContext('2d');x.fillStyle='#14161a';x.fillRect(0,0,cv.width,cv.height);
@@ -237,7 +288,7 @@ function drawCompare(){const svg=$('cmp');svg.innerHTML='';const W=Math.max(300,
     shared:'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form or Era idioms to let each tier write its own structure.'}[form.mode];
     'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form to let each tier write its own structure.';}
 
-function drawForm(){$('midiBtn').disabled=tier===0;$('midiBtn').title=tier===0?'The 4K song is made inside the packed 4K file and cannot be exported':'Download this tier\'s song as a multitrack MIDI file';$('midiSay').textContent='';$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${sfx()}-${['40k','40k','400k','4m','40m'][tier]}`;const r=form.res[tier],song=form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
+function drawForm(){updateDrawerMarksSafe();$('midiBtn').disabled=tier===0;$('midiBtn').title=tier===0?'The 4K song is made inside the packed 4K file and cannot be exported':'Download this tier\'s song as a multitrack MIDI file';$('midiSay').textContent='';{const ek=encodeKnobs(K);$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${sfx()}-${['40k','40k','400k','4m','40m'][tier]}${ek?'.k'+ek:''}`;}const r=form.res[tier],song=r.song||form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
   $('formTitle').textContent=`Form at ${T[tier].label}`+(tier>=2?' · '+{shared:'shared form',free:'free form',era:'era idioms'}[mode]:'');$('detail').textContent='Hover or tap a section for details.';
   drawDiagram();drawSSM();drawCompare();
   let ev=0;if(r.ev)for(const e of r.ev)ev+=e.ns?e.ns.length:1;
@@ -254,13 +305,13 @@ function drawCols(){const t=T[tier];$('cols').innerHTML=`<div><h3>Composition</h
   $('note').textContent=t.rule==='mem'?'At 4M and 40M the code is free; the meter counts every texture, render target, mesh, sample bank and impulse response the demo builds while it runs.':tier===0?'The 4K tier has room only for its own tiny composer, so its song differs from the others. Every tier from 40K up starts from the same composition for a given seed.':'From 40K up, the seed produces the same composition; each tier then arranges, voices and pictures it as far as its limit allows.';}
 
 function load(){const t=T[tier],f=$('frame');live={};const nf=f.cloneNode();nf.src=`tiers/${t.id}.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${t.L>0?sfx():''}`;f.replaceWith(nf);
-  nf.addEventListener('load',()=>{try{nf.contentWindow.postMessage({demoseedCmd:'visible',v:stageShown},'*');}catch(e){}if(started&&t.L>0)try{nf.contentWindow.postMessage({demoseedCmd:'start'},'*');}catch(e){}});
+  nf.addEventListener('load',()=>{try{nf.contentWindow.postMessage({demoseedCmd:'visible',v:stageShown},'*');if(hasKnobs())nf.contentWindow.postMessage({demoseedCmd:'knobs',knobs:K},'*');}catch(e){}if(started&&t.L>0)try{nf.contentWindow.postMessage({demoseedCmd:'start'},'*');}catch(e){}});
   T.forEach((x,i)=>x.el.setAttribute('aria-pressed',i===tier));$('seed').value=seed.toString(16).toUpperCase().padStart(8,'0');
   $('nowplaying').innerHTML=t.L>0&&started?'<b>Starting…</b>':'<b>Click the screen to start.</b> '+(t.id==='40k'?'It boots from DOS.':'');
   $('nextsong').disabled=t.L<1;try{history.replaceState(null,'','#'+$('seed').value+sfx());}catch(e){}
   $('mShared').setAttribute('aria-pressed',mode==='shared');$('mFree').setAttribute('aria-pressed',mode==='free');$('mEra').setAttribute('aria-pressed',mode==='era');
   $('sub').textContent='One seed, five size limits, thirty years of demo scene. '+{shared:'Same song at every tier from 40K up.',free:'Same material at every tier; each tier writes its own form.',era:'Same material at every tier; each tier writes its form in its own era’s idiom.'}[mode];
-  drawForm();drawMeter();drawCols();}
+  drawForm();drawMeter();drawCols();renderDrawer();}
 // when the stage scrolls out of view the demo stops drawing, so scrolling and reading never starve the music
 // visuals draw only while the whole stage is in view and the page is still; any scroll away from it freezes the picture
 let stageShown=true,inView=true,scrolling=0;
@@ -268,11 +319,12 @@ const sendVis=()=>{const v=inView&&!scrolling;if(v===stageShown)return;stageShow
 try{new IntersectionObserver(es=>{for(const e of es)inView=e.intersectionRect.height>=0.6*Math.min(e.boundingClientRect.height,innerHeight);sendVis();},{threshold:[0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1]}).observe($('stage'));}catch(e){}
 addEventListener('scroll',()=>{clearTimeout(scrolling);scrolling=setTimeout(()=>{scrolling=0;sendVis();},250);sendVis();},{passive:true});
 function pick(i){tier=i;try{localStorage.setItem('oom-tier',i);}catch(e){}load();}
-function setSeed(s){seed=s>>>0;form=composeAll(seed,mode);load();}
-function setMode(m){mode=m;try{localStorage.setItem('oom-mode',m);}catch(e){}form=composeAll(seed,mode);load();}
+function recompose(){form=composeAll(seed,mode,K);form0=hasKnobs()?composeAll(seed,mode):form;}
+function setSeed(s){seed=s>>>0;recompose();load();}
+function setMode(m){mode=m;try{localStorage.setItem('oom-mode',m);}catch(e){}recompose();load();}
 
 addEventListener('message',e=>{const d=e.data;if(!d||!d.demoseed)return;live=d;if(d.state==='play'||d.state==='fadeout')started=true;
-  if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;form=composeAll(seed,mode);$('seed').value=d.seed;drawForm();try{history.replaceState(null,'','#'+d.seed+sfx());}catch(_){}}
+  if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;recompose();$('seed').value=d.seed;drawForm();renderDrawer();try{history.replaceState(null,'','#'+d.seed+sfx());}catch(_){}}
   const mute=d.sound==='suspended';$('stage').classList.toggle('mute',mute);
   if(mute)$('nowplaying').innerHTML='<b class="warn">Sound is off. Click the screen to turn it on.</b>';else if(d.title)$('nowplaying').innerHTML=`<b>${d.title}</b> by ${d.group} · seed ${d.seed}`;
   if(playX&&d.pos!=null&&d.rows&&d.state==='play'&&d.tier===T[tier].label){const W=+$('diag').getAttribute('viewBox').split(' ')[2],x=Math.min(1,d.pos/d.rows)*W;playX.setAttribute('x1',x);playX.setAttribute('x2',x);playX.setAttribute('opacity',1);}
@@ -281,13 +333,73 @@ window.addEventListener('blur',()=>{if(document.activeElement===$('frame'))start
 $('seed').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=parseInt(e.target.value,16);if(!isNaN(v))setSeed(v);}});
 $('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)&&v>>>0!==seed)setSeed(v);});
 $('midiBtn').onclick=()=>{const r=form.res[tier];if(!r.ev)return;const nm=genNames(seed),lab=tier===1?'tracker module':{shared:'shared form',free:'free form',era:'era idioms'}[mode];
-  offerMidi(`${nm.title} - ${T[tier].label} ${lab} - ${seed.toString(16).toUpperCase().padStart(8,'0')}`,toMidi(form.song,r,{title:nm.title,text:`Demoseed ${T[tier].label}, ${lab}, by ${nm.group}, seed ${seed.toString(16).toUpperCase().padStart(8,'0')}`}),t=>{$('midiSay').textContent=t;});};
+  offerMidi(`${nm.title} - ${T[tier].label} ${lab} - ${seed.toString(16).toUpperCase().padStart(8,'0')}`,toMidi(r.song||form.song,r,{title:nm.title,text:`Demoseed ${T[tier].label}, ${lab}, by ${nm.group}, seed ${seed.toString(16).toUpperCase().padStart(8,'0')}`}),t=>{$('midiSay').textContent=t;});};
 $('mShared').onclick=()=>setMode('shared');$('mFree').onclick=()=>setMode('free');$('mEra').onclick=()=>setMode('era');
+
+// ---- behind the scenes: the knobs
+const hasKnobs=()=>{for(const sc in K){const v=K[sc];if(sc==='song'){if(v&&Object.keys(v).length)return true;}else for(const L in v)if(v[L]&&Object.keys(v[L]).length)return true;}return false;};
+const scopeObj=(scope,L,make)=>{if(scope==='song'){if(!K.song&&make)K.song={};return K.song||{};}if(!K[scope]&&make)K[scope]={};const o=K[scope]||{};if(!o[L]&&make)o[L]={};return o[L]||{};};
+const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const tierL=()=>[-1,0,1,2,3][tier];
+function seedValue(scope,id){if(scope==='song')return form.song.seedPick[id];const r=form.res[tier];return r.knobs?r.knobs[id]:undefined;}
+function curValue(scope,id){const o=scopeObj(scope,tierL(),false);return o[id]!=null?o[id]:seedValue(scope,id);}
+function showVal(k,v){if(k.type==='toggle')return v?'on':'off';if(k.type==='select'){const o=k.opts.find(o=>String(o[0])===String(v));return o?o[1]:String(v);}if(k.type==='multi')return (v||[]).length+' on';if(k.type==='text')return '';return v+(k.unit||'');}
+let kTimer=0;
+function setKnob(scope,id,v,live){const o=scopeObj(scope,tierL(),true);if(eq(v,seedValue(scope,id)))delete o[id];else o[id]=v;
+  recompose();drawForm();updateDrawerMarks();clearTimeout(kTimer);if(!live)kTimer=setTimeout(sendKnobs,350);}
+function sendKnobs(){try{$('frame').contentWindow.postMessage({demoseedCmd:'knobs',knobs:K},'*');}catch(e){}}
+function knobRow(scope,k){const d=document.createElement('div');d.className='knob';d.dataset.scope=scope;d.dataset.id=k.id;const v=curValue(scope,k.id),uid='k_'+scope+'_'+k.id;
+  let ctl='';
+  if(k.type==='range')ctl=`<input type="range" id="${uid}" min="${k.min}" max="${k.max}" step="${k.step}" value="${v}">`;
+  else if(k.type==='select')ctl=`<select id="${uid}">${k.opts.map(o=>`<option value="${o[0]}"${String(o[0])===String(v)?' selected':''}>${o[1]}</option>`).join('')}</select>`;
+  else if(k.type==='toggle')ctl=`<label class="switch"><input type="checkbox" id="${uid}"${v?' checked':''}> <span>${v?'on':'off'}</span></label>`;
+  else if(k.type==='text')ctl=`<input type="text" id="${uid}" value="${v}" spellcheck="false" autocomplete="off">`;
+  else if(k.type==='multi')ctl=`<div class="chips" role="group" aria-label="${k.label}">${k.opts.map(o=>`<button type="button" data-v="${o[0]}" aria-pressed="${(v||[]).map(String).includes(String(o[0]))}">${o[1]}</button>`).join('')}</div>`;
+  d.innerHTML=`<div class="kh">${k.type==='toggle'||k.type==='multi'?`<span class="kl">${k.label}</span>`:`<label for="${uid}">${k.label}</label>`}<span class="kv">${showVal(k,v)}</span></div>${ctl}<div class="kp">${k.help}</div><div class="ks"><span class="seedv"></span><button type="button" class="kreset">back to the seed</button></div>`;
+  const parse=x=>{if(k.type==='range')return +x;if(k.type==='select'){const o=k.opts.find(o=>String(o[0])===x);return o?o[0]:x;}return x;};
+  if(k.type==='range'){const el=d.querySelector('input');let raf=0;el.addEventListener('input',()=>{d.querySelector('.kv').textContent=showVal(k,+el.value);cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>setKnob(scope,k.id,+el.value,true));});el.addEventListener('change',()=>setKnob(scope,k.id,+el.value,false));}
+  else if(k.type==='select'){const el=d.querySelector('select');el.addEventListener('change',()=>{setKnob(scope,k.id,parse(el.value),false);d.querySelector('.kv').textContent=showVal(k,parse(el.value));});}
+  else if(k.type==='toggle'){const el=d.querySelector('input');el.addEventListener('change',()=>{d.querySelector('.switch span').textContent=el.checked?'on':'off';d.querySelector('.kv').textContent=el.checked?'on':'off';setKnob(scope,k.id,el.checked,false);});}
+  else if(k.type==='text'){const el=d.querySelector('input');el.addEventListener('input',()=>{const t=el.value.trim();const ok=/^[A-Ebdcktxv|]+$/.test(t)&&/[A-E]/.test(t);el.classList.toggle('bad',!ok);if(ok)setKnob(scope,k.id,t,false);});}
+  else if(k.type==='multi'){d.querySelectorAll('.chips button').forEach(b=>b.addEventListener('click',()=>{const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);
+      const vals=[...d.querySelectorAll('.chips button')].filter(x=>x.getAttribute('aria-pressed')==='true').map(x=>{const o=k.opts.find(o=>String(o[0])===x.dataset.v);return o[0];});d.querySelector('.kv').textContent=showVal(k,vals);setKnob(scope,k.id,vals,false);}));}
+  d.querySelector('.kreset').addEventListener('click',()=>{const o=scopeObj(scope,tierL(),true);delete o[k.id];recompose();drawForm();renderDrawer();clearTimeout(kTimer);kTimer=setTimeout(sendKnobs,200);});
+  return d;}
+function renderDrawer(){if(!form)return;const body=$('dbody');body.innerHTML='';const L=tierL(),lab={shared:'shared form',free:'free form',era:'era idioms'}[mode];
+  $('dsub').textContent=`${T[tier].label} · ${tier<2?'fixed file':lab}${mode==='era'&&L>0?' · '+ERA_LABEL[L]:''}`;
+  if(L<1){body.innerHTML=`<p class="dnote">The 4K and 40K tiers are fixed files with their own composers baked in, so there is nothing to turn here. Pick 400K, 4M or 40M to open the knobs.</p>`;}
+  else{const sec=(title,note)=>{const d=document.createElement('section');d.className='dsec';d.innerHTML=`<h3>${title}<span>${note||''}</span></h3>`;body.append(d);return d;};
+    const s2=sec(mode==='free'?'The form: allowance':mode==='era'?'The form: '+ERA_LABEL[L]:'The form',mode==='shared'?'':T[tier].label+' only');
+    if(mode==='shared'){const p=document.createElement('p');p.className='dnote';p.innerHTML='Shared form follows one fixed plan, so its structure has no knobs. Free form exposes the allowance each tier may spend; Era idioms expose the habits of each era.<br><button type="button" id="dgoFree">Switch to Free form</button><button type="button" id="dgoEra">Switch to Era idioms</button>';s2.append(p);
+      p.querySelector('#dgoFree').onclick=()=>setMode('free');p.querySelector('#dgoEra').onclick=()=>setMode('era');}
+    else for(const k of knobsFor(mode,L))s2.append(knobRow(mode,k));
+    const s1=sec('The song','400K, 4M and 40M');for(const k of KNOB_UI.song)s1.append(knobRow('song',k));}
+  updateDrawerMarks();}
+function updateDrawerMarks(){const L=tierL();document.querySelectorAll('#dbody .knob').forEach(d=>{const sc=d.dataset.scope,id=d.dataset.id,o=scopeObj(sc,L,false),mod=o[id]!=null;d.classList.toggle('mod',mod);
+    const k=(sc==='song'?KNOB_UI.song:knobsFor(sc,L)).find(x=>x.id===id);d.querySelector('.seedv').textContent='seed: '+(k.type==='text'?seedValue(sc,id):k.type==='multi'?(seedValue(sc,id)||[]).map(v=>{const q=k.opts.find(o=>String(o[0])===String(v));return q?q[1]:v;}).join(', ')||'none':showVal(k,seedValue(sc,id)));d.querySelector('.kreset').hidden=!mod;});
+  $('knobsBtn').classList.toggle('mod',hasKnobs());drawPreview();
+  const ef=$('deffect');if(!hasKnobs()||!form0||tier<2){ef.textContent='Nothing changed yet: this is the seed’s own song.';return;}
+  const a=form0.res[tier],b=form.res[tier],sa=stats(a),sb=stats(b),mm=x=>Math.floor(x/60)+':'+String(Math.round(x%60)).padStart(2,'0'),f=(n,x,y,fmt=v=>v)=>`<span${x!==y?' class="up"':''}>${n} <b>${fmt(x)}</b> → <b>${fmt(y)}</b></span>`;
+  ef.innerHTML='Against the seed’s own song: '+[f('sections',sa.secs,sb.secs),f('bars',sa.bars,sb.bars),f('length',a.len,b.len,mm),f('themes',sa.themes,sb.themes),f('transforms',sa.xf,sb.xf),
+    f('repeats',Math.round(a.idiom.reps*100),Math.round(b.idiom.reps*100),v=>v+'%'),f('layers',+a.idiom.meanLayers.toFixed(1),+b.idiom.meanLayers.toFixed(1)),f('d′',a.sim.dp==null?'–':+a.sim.dp.toFixed(2),b.sim.dp==null?'–':+b.sim.dp.toFixed(2))].join(' · ');}
+// two strips on one time axis: the seed's own form, and the form with your knobs
+function drawPreview(){const svg=$('dprev');if(!svg||!form)return;svg.innerHTML='';if(tier<2){svg.setAttribute('height',0);return;}const rows=hasKnobs()&&form0?[['seed',form0.res[tier]],['yours',form.res[tier]]]:[['now',form.res[tier]]];
+  const W=Math.max(260,svg.clientWidth||380),LW=44,RH=40,H=rows.length*RH+14,maxR=Math.max(...rows.map(x=>x[1].rows)),xs=t=>LW+t/maxR*(W-LW);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('height',H);
+  rows.forEach(([lab,r],i)=>{const y=i*RH+14;svg.append(svgEl('text',{x:0,y:y+14},lab));const firstOf={};
+    r.secs.forEach(x=>{const x0=xs(x.start),w=Math.max(1,xs(x.start+x.len)-x0-1),col=x.mat?MATCOL[x.mat]:NEUTRAL;const rc=svgEl('rect',{x:x0,y:y+4,width:w,height:16,fill:col,'fill-opacity':.25+.65*x.energy});rc.append(svgEl('title',{},x.name+', '+x.bars+' bars'));svg.append(rc);
+      if(x.meter!==16)svg.append(svgEl('rect',{x:x0,y:y+4,width:w,height:2,fill:'#ebe8e1'}));
+      if(x.mat){const p=firstOf[x.mat];if(p&&x.role!=='state'){const a=xs(p.start+p.len/2),b=xs(x.start+x.len/2),h=Math.min(9,(b-a)*.2);svg.append(svgEl('path',{d:`M${a} ${y+3}C${a} ${y+3-h*1.3} ${b} ${y+3-h*1.3} ${b} ${y+3}`,stroke:MATCOL[x.mat],'stroke-opacity':.75,fill:'none'}));}firstOf[x.mat]=x;}});});
+  svg.append(svgEl('text',{x:W,y:10,'text-anchor':'end'},`${Math.round(maxR/16)} bars`));}
+function openDrawer(on){$('drawer').classList.toggle('open',on);$('knobsBtn').setAttribute('aria-expanded',on);if(on){renderDrawer();setTimeout(()=>$('dclose').focus(),50);}else $('knobsBtn').focus();}
+$('knobsBtn').onclick=()=>openDrawer(!$('drawer').classList.contains('open'));$('dclose').onclick=()=>openDrawer(false);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&$('drawer').classList.contains('open'))openDrawer(false);});
+$('dresetTier').onclick=()=>{const L=tierL();if(K[mode])delete K[mode][L];recompose();drawForm();renderDrawer();sendKnobs();};
+$('dresetAll').onclick=()=>{K={};recompose();drawForm();renderDrawer();sendKnobs();};
 let rz=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(form){drawDiagram();drawCompare();}},150);});
 $('newseed').onclick=()=>setSeed((Math.random()*4294967296)>>>0);
 $('nextsong').onclick=()=>{try{$('frame').contentWindow.postMessage({demoseedCmd:'next'},'*');}catch(e){}};
 $('full').onclick=()=>{const s=$('stage');try{(s.requestFullscreen||s.webkitRequestFullscreen).call(s);}catch(e){}};
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const n=+e.key;if(n>=1&&n<=5)pick(n-1);});
+addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;const n=+e.key;if(n>=1&&n<=5)pick(n-1);});
 setSeed(seed);
 })();
 </script>

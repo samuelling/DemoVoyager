@@ -174,6 +174,9 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
       <tr><td>40M</td><td>2026 cinematic scoring</td><td>Acts, not verses: opening, Act I, Act II, Act III, epilogue. Leitmotifs change mood with the story (statement, darker, threat, heroic, remembered), ostinatos and drones carry tension, hits mark the cuts, two motifs meet at the climax, and the last statement returns slowed down.</td></tr></tbody></table></div>
     <p>These are broad strokes of a varied scene, chosen as each era’s most recognisable habits rather than a complete survey. Tempo changes, common in film-style scores, are not modelled; the 40M tier suggests them with augmented and diminished rhythms instead.</p>
 
+    <h2>Behind the scenes: the knobs</h2>
+    <p>Every structural choice above is a parameter the seed sets: a layout string and a transformation palette in Free form; bars per layer change, breakdown length and the beat in the 2003 idiom; drop style, the second drop and the silence before it in 2012; the opening drone, the Act II cues and the threat’s meter in 2026. The player’s <i>Behind the scenes</i> drawer exposes them, together with the song’s key, mode, tempo and swing. Each knob shows the seed’s own value; moving one regenerates the form, the measurements and the music, and the drawer compares the result with the seed’s song. Every seeded choice is drawn in the same order whatever the knobs say, so a knob changes what it names and leaves the rest of the seed alone (the one exception is the transformation palette, whose draws depend on what is in it). A dissection link carries your knobs with it.</p>
+
     <h2>Turning a plan into notes</h2>
     <ul>
       <li><b>Harmony.</b> One chord per bar from the theme’s progression. A relative-key section re-centres it, a reharmonised section swaps in a second progression, a development walks the circle of fifths, a build sits on the dominant, and statements and returns close with V–I.</li>
@@ -212,12 +215,12 @@ td .chip{display:inline-block;width:9px;height:9px;margin-right:6px}
 (()=>{
 const $=id=>document.getElementById(id);
 const TIERS=[['40k','40K',1],['400k','400K',2],['4m','4M',3],['40m','40M',4]];
-let seed=0,mode='free',ti=4,form=null,zoom=2;const sfx=()=>mode==='shared'?'':'-'+mode;
+let seed=0,mode='free',ti=4,form=null,zoom=2,K={};const sfx=()=>mode==='shared'?'':'-'+mode;
 const hx=v=>(v>>>0).toString(16).toUpperCase().padStart(8,'0');
 const mmss=s=>Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');
 // state from the link: #SEED[-free|-era][-tier] or #method
-const h=(location.hash||'').slice(1),m=/^([0-9a-fA-F]{1,8})(-free|-era)?(?:-(40k|400k|4m|40m))?$/i.exec(h);
-seed=m?parseInt(m[1],16)>>>0:(Math.random()*4294967296)>>>0;if(m){mode=m[2]?m[2].slice(1).toLowerCase():'shared';if(m[3])ti=TIERS.find(t=>t[0]===m[3].toLowerCase())[2];}
+const h=(location.hash||'').slice(1),m=/^([0-9a-fA-F]{1,8})(-free|-era)?(?:-(40k|400k|4m|40m))?(?:\.k([A-Za-z0-9_-]+))?$/i.exec(h);
+seed=m?parseInt(m[1],16)>>>0:(Math.random()*4294967296)>>>0;if(m){mode=m[2]?m[2].slice(1).toLowerCase():'shared';if(m[4])K=decodeKnobs(m[4]);if(m[3])ti=TIERS.find(t=>t[0]===m[3].toLowerCase())[2];}
 TIERS.forEach(([id,lab,i])=>{const b=document.createElement('button');b.type='button';b.textContent=lab;b.onclick=()=>{ti=i;render();};b.dataset.i=i;$('tiers').append(b);});
 [1,2,4,8].forEach(z=>{const b=document.createElement('button');b.type='button';b.textContent=z+'×';b.onclick=()=>{zoom=z;drawRoll();mark();};b.dataset.z=z;$('zoom').append(b);});
 function mark(){[...$('tiers').children].forEach(b=>b.setAttribute('aria-pressed',+b.dataset.i===ti));[...$('zoom').children].forEach(b=>b.setAttribute('aria-pressed',+b.dataset.z===zoom));
@@ -228,18 +231,18 @@ $('mShared').onclick=()=>{mode='shared';compose();};$('mFree').onclick=()=>{mode
 $('newseed').onclick=()=>{seed=(Math.random()*4294967296)>>>0;compose();};
 $('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)){seed=v>>>0;compose();}});
 $('midiBtn').onclick=()=>{const r=R(),nm=genNames(seed),tl=TIERS.find(t=>t[2]===ti)[1],lab=ti>1?{shared:'shared form',free:'free form',era:'era idioms'}[mode]:'tracker module';
-  offerMidi(`${nm.title} - ${tl} ${lab} - ${hx(seed)}`,toMidi(form.song,r,{title:nm.title,text:`Demoseed ${tl}, ${lab}, by ${nm.group}, seed ${hx(seed)}`}),t=>{$('midiSay').textContent=t;});};
-function compose(){form=composeAll(seed,mode);render();}
+  offerMidi(`${nm.title} - ${tl} ${lab} - ${hx(seed)}`,toMidi(r.song||form.song,r,{title:nm.title,text:`Demoseed ${tl}, ${lab}, by ${nm.group}, seed ${hx(seed)}`}),t=>{$('midiSay').textContent=t;});};
+function compose(){form=composeAll(seed,mode,K);render();}
 const R=()=>form.res[ti];
 
-function render(){mark();const r=R(),song=form.song,names=genNames(seed),st=stats(r);
-  try{history.replaceState(null,'','#'+hx(seed)+sfx()+'-'+TIERS.find(t=>t[2]===ti)[0]);}catch(e){}
+function render(){mark();const r=R(),song=r.song||form.song,names=genNames(seed),st=stats(r);
+  try{history.replaceState(null,'','#'+hx(seed)+sfx()+'-'+TIERS.find(t=>t[2]===ti)[0]+(encodeKnobs(K)?'.k'+encodeKnobs(K):''));}catch(e){}
   $('seed').value=hx(seed);$('playlink').href='./#'+hx(seed)+sfx();
   $('songTitle').textContent=`${names.title} by ${names.group}`;
-  $('songMeta').textContent=`${TIERS.find(t=>t[2]===ti)[1]} · ${ti>1?{shared:'shared form',free:'free form',era:'era idioms · '+ERA_LABEL[ti-1]}[mode]:'tracker module (fixed)'} · ${song.desc.key.toLowerCase()} · ${song.bpm} bpm · seed ${hx(seed)}`;
+  $('songMeta').textContent=`${TIERS.find(t=>t[2]===ti)[1]} · ${ti>1?{shared:'shared form',free:'free form',era:'era idioms · '+ERA_LABEL[ti-1]}[mode]:'tracker module (fixed)'} · ${song.desc.key.toLowerCase()} · ${song.bpm} bpm · seed ${hx(seed)}${encodeKnobs(K)&&ti>1?' · with your knobs':''}`;
   let notes=0;for(const e of r.ev)if(e.i!=='sweep')notes+=e.ns?e.ns.length:1;
-  const K=[[st.secs,'sections'],[st.levels,'levels'],[st.themes,'themes'],[st.xf,'transforms'],[st.keys,'key areas'],[st.meters,'meters'],[st.bars,'bars'],[mmss(r.len),'length'],[notes.toLocaleString('en-US'),'notes and hits'],[new Set(r.ev.map(e=>e.i)).size,'instruments'],[Math.round(r.idiom.reps*100)+'%','repeats'],[r.idiom.meanLayers.toFixed(1),'layers per bar'],[r.idiom.avgPhrase.toFixed(1),'bars per phrase'],[r.sim.dp==null?'–':r.sim.dp.toFixed(2),'d′ heard']];
-  $('kpis').innerHTML=K.map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('');
+  const KP=[[st.secs,'sections'],[st.levels,'levels'],[st.themes,'themes'],[st.xf,'transforms'],[st.keys,'key areas'],[st.meters,'meters'],[st.bars,'bars'],[mmss(r.len),'length'],[notes.toLocaleString('en-US'),'notes and hits'],[new Set(r.ev.map(e=>e.i)).size,'instruments'],[Math.round(r.idiom.reps*100)+'%','repeats'],[r.idiom.meanLayers.toFixed(1),'layers per bar'],[r.idiom.avgPhrase.toFixed(1),'bars per phrase'],[r.sim.dp==null?'–':r.sim.dp.toFixed(2),'d′ heard']];
+  $('kpis').innerHTML=KP.map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('');
   r.chords=chordsPerBar(r,song);r.pb=perBar(r);
   formDiagram($('diag'),r,song,{detail:t=>{$('detail').textContent=t;},legend:$('legend')});$('detail').textContent='Hover or tap a section for details.';
   drawRoll();drawSSM();drawDist();drawEnergy();drawHeat();drawThemes();drawTable();}

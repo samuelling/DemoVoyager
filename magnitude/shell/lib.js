@@ -21,14 +21,14 @@ function trackerEvents(song){const ev=[];let R0=0;for(const s of song.sections){
       open={i,t:R0+r,d:1,v};if(c===3&&cl.fx===0&&cl.p)open.ns=[n,n+(cl.p>>4),n+(cl.p&15)];else open.n=n;ev.push(open);}}if(open)open.d=R0+ROWS-open.t;}
   for(let r=0;r<ROWS;r++)for(const c of [0,1]){const cl=P[r][c];if(cl.n>0)ev.push({i:cl.i===1?'kick':cl.i===2?'snare':'hat',t:R0+r,v:cl.fx===0xC?Math.max(.15,cl.p/64):1});}R0+=ROWS;}return ev;}
 const sharedThemes=song=>{const M=song.mat;return{A:{motifs:{A:M.m[0],B:M.m[1]},shape:M.sh1,prog:M.P1,start:M.start1},B:{motifs:{A:M.m[2],B:M.m[3]},shape:M.sh2,prog:M.P2,start:M.start2}};};
-function composeAll(sd,mode){if(mode===true)mode='free';if(!mode)mode='shared';const free=mode!=='shared';const song=genSong(sd),res=[];
+function composeAll(sd,mode,K){if(mode===true)mode='free';if(!mode)mode='shared';K=K||{};const free=mode!=='shared';const song0=genSong(sd),song=K.song&&Object.keys(K.song).length?genSong(sd,K.song):song0,res=[];
   const k4=[['intro','intro',.15],['groove','build',.4],['A','A',.7],['A','A',.7],['break','break',.25],['B','B',.7],['B','B',.7],['groove','build',.5],['A lift','A',.85],['outro','outro',.3]];
   res.push({secs:k4.map(([n,m,e],i)=>({name:n,start:i*64,len:64,bars:4,meter:16,role:/^[AB]/.test(m)?(i===2||i===5?'state':'ret'):m,mat:/^[AB]/.test(m)?m:null,xf:n==='A lift'?['transpose']:[],key:n==='A lift'?2:0,energy:e})),rows:640,levels:1,ev:null,len:null});
-  {const secs=sharedSecs(song.sections.map(s=>[s.name,ROWS]),song,0);res.push({secs,rows:song.sections.length*ROWS,levels:1,ev:trackerEvents(song),len:timeOf(song,song.sections.length*ROWS),themes:sharedThemes(song),inst:{A:'lead',B:'lead'}});}
-  for(const L of [1,2,3]){const sc=mode==='era'?arrangeEra(song,L):mode==='free'?arrangeFree(song,L):arrange(song,L);
+  {const S0=song0,secs=sharedSecs(S0.sections.map(s=>[s.name,ROWS]),S0,0);res.push({secs,rows:S0.sections.length*ROWS,levels:1,ev:trackerEvents(S0),len:timeOf(S0,S0.sections.length*ROWS),themes:sharedThemes(S0),inst:{A:'lead',B:'lead'},song:S0});}
+  for(const L of [1,2,3]){const kk=K[mode]&&K[mode][L],sc=mode==='era'?arrangeEra(song,L,kk):mode==='free'?arrangeFree(song,L,kk):arrange(song,L);
     const secs=free?sc.secs.map(x=>Object.assign({},x,{tr:x.rel?x.key-(song.minor?3:-3):x.key,mat:/intro|outro|build|bridge/.test(x.role)?null:x.mat})):sharedSecs(sc.secs.map(x=>[x.name,x.len]),song,L);
     const levels=free?(sc.tree.kids.some(g=>g.kids.some(k=>k.kids))?3:sc.tree.kids.some(g=>g.label)?2:1):1;
-    res.push({secs,rows:sc.rows,levels,ev:sc.ev,tree:free?sc.tree:null,len:timeOf(song,sc.rows),themes:free?sc.themes:sharedThemes(song),inst:free?sc.inst:[null,{A:'lead',B:'lead'},{A:'lead',B:'keys'},{A:'oboe',B:'bell'}][L]});}
+    res.push({secs,rows:sc.rows,levels,ev:sc.ev,tree:free?sc.tree:null,song,knobs:sc.knobs||null,len:timeOf(song,sc.rows),themes:free?sc.themes:sharedThemes(song),inst:free?sc.inst:[null,{A:'lead',B:'lead'},{A:'lead',B:'keys'},{A:'oboe',B:'bell'}][L]});}
   for(const r of res)r.sim=r.ev?similarity(r,song):null;
   for(const r of res)if(r.sim)r.idiom=idiomStats(r);
   return{song,res,free,mode};}
@@ -158,3 +158,50 @@ async function offerMidi(base,bytes,say){const safe=base.replace(/[^A-Za-z0-9 ._
     try{await dl.save({filename:safe+'.zip',data:zipStore([{name:safe+'.mid',data:bytes}])});say('Saved as a zip with the .mid inside.');}
     catch(e){say(e&&e.code==='declined'?'Download cancelled.':e&&e.code==='rate_limited'?'A download prompt is already open.':'The download could not start here.');}return;}
   const url=URL.createObjectURL(new Blob([bytes],{type:'audio/midi'})),a=document.createElement('a');a.href=url;a.download=safe+'.mid';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);say('Downloaded '+safe+'.mid');}
+
+// ---- the knobs: what each mode and era exposes, with plain descriptions of what they change
+const XF_ALL=['vary','octave','thin','transpose','fragment','augment','reharm','halftime','harmony','invert','retro','diminish','canon','modal'];
+const KNOB_UI={
+  song:[{id:'key',label:'Key',type:'select',opts:KEYS.map((k,i)=>[i,k]),help:'The tonic of the whole song.'},
+    {id:'mode',label:'Mode',type:'select',opts:MODES.map((m,i)=>[i,m[0].toLowerCase()]),help:'The scale’s colour. Changing it also changes which chord progressions the composer can use.'},
+    {id:'bpm',label:'Tempo',type:'range',min:70,max:180,step:1,unit:' bpm',help:'Beats per minute.'},
+    {id:'swing',label:'Swing',type:'toggle',help:'Delays every second sixteenth, the tracker way.'}],
+  free:[{id:'layout',label:'Layout',type:'text',help:'The plan, one token per section. Capitals are themes (first time a statement, later a return). b build, d drop, c climax, k break, t bridge, x development, v variation. | starts a new part.'},
+    {id:'nx',label:'Changes per return',type:'range',min:0,max:3,step:1,help:'How many transformations a returning theme may carry. More is richer and harder to recognise.'},
+    {id:'xf',label:'Transformation palette',type:'multi',opts:XF_ALL.map(x=>[x,XF_LABEL[x]]),help:'Which transformations returns, developments and variations may draw from.'},
+    {id:'keys',label:'Keys new themes may move to',type:'multi',opts:[['rel','relative'],[5,'subdominant'],[7,'dominant'],['up','lift'],[-2,'down a tone'],[3,'up a minor third']],help:'None ticked keeps every theme in the home key.'},
+    {id:'oddMeter',label:'Odd meters',type:'range',min:0,max:100,step:5,unit:'%',help:'Chance that a development, variation or break leaves 4/4 for 3/4, 7/8 or 5/4.'},
+    {id:'split',label:'Phrase splitting',type:'range',min:0,max:100,step:5,unit:'%',help:'Chance that a long section splits into phrases: the third level of structure.'},
+    {id:'lenScale',label:'Section length',type:'select',opts:[[.5,'short'],[1,'normal'],[1.5,'long'],[2,'very long']],help:'Scales every section’s length.'},
+    {id:'arcPeak',label:'Where the swell peaks',type:'range',min:0,max:100,step:1,unit:'%',help:'Position of the energy peak across the piece. The golden section is 62%.'},
+    {id:'arcAmp',label:'Swell strength',type:'range',min:0,max:40,step:1,help:'How much the energy rises toward that peak.'}],
+  era:{
+    1:[{id:'step',label:'Bars per layer change',type:'select',opts:[[4,'4 bars'],[8,'8 bars'],[16,'16 bars']],help:'The trance unit: one part enters or leaves every this many bars.'},
+      {id:'introOrder',label:'How the track opens',type:'select',opts:[[0,'kick, then hats'],[1,'hats, then kick'],[2,'kick and hats, then bass']],help:'Which layers start the build-up.'},
+      {id:'beat',label:'Beat',type:'select',opts:[['four','four on the floor'],['groove','the seed’s breakbeat']],help:'Trance runs on four on the floor; the breakbeat leans progressive.'},
+      {id:'themeSteps',label:'Theme passes',type:'range',min:1,max:4,step:1,help:'How many layer steps carry the main riff before the breakdown.'},
+      {id:'breakdown',label:'Breakdown',type:'range',min:0,max:32,step:4,unit:' bars',help:'Drums drop out; pad and melody alone. 0 removes it.'},
+      {id:'breakdownKick',label:'Keep the kick in the breakdown',type:'toggle',help:'A harder, club-style breakdown.'},
+      {id:'build',label:'Snare-roll build',type:'range',min:0,max:16,step:2,unit:' bars',help:'The accelerating roll that sets up the climax.'},
+      {id:'climax',label:'Climax',type:'range',min:8,max:64,step:8,unit:' bars',help:'Every layer back, the riff an octave up and then in thirds.'},
+      {id:'outroSteps',label:'Outro strip-down',type:'range',min:0,max:4,step:1,unit:' steps',help:'Layers removed one by one at the end.'}],
+    2:[{id:'dropStyle',label:'Drop style',type:'select',opts:[['four','big room, four on the floor'],['half','half-time, dubstep and trap']],help:'The two drops of the 2010s.'},
+      {id:'secondDrop',label:'Second drop',type:'select',opts:[['switch','switch-up to the other style'],['lift','same style, key lifted'],['none','one drop only']],help:'How the track tops its first drop.'},
+      {id:'verse',label:'Verse',type:'range',min:0,max:32,step:8,unit:' bars',help:'Hooks before the first build. 0 goes straight to the build.'},
+      {id:'callAnswer',label:'Call and answer',type:'toggle',help:'Lead states a bar, keys answer it.'},
+      {id:'build',label:'Build',type:'range',min:0,max:16,step:2,unit:' bars',help:'Snare roll, riser and a fragment of the hook climbing.'},
+      {id:'gap',label:'Silence before the drop',type:'range',min:0,max:4,step:1,unit:' beats',help:'The held breath before the impact.'},
+      {id:'dropBars',label:'Drop',type:'range',min:8,max:32,step:8,unit:' bars',help:'Length of each drop.'},
+      {id:'break',label:'Break between drops',type:'range',min:0,max:16,step:4,unit:' bars',help:'Theme B on keys, no drums.'}],
+    3:[{id:'opening',label:'Opening drone',type:'range',min:4,max:16,step:2,unit:' bars',help:'Piano over a held drone, swelling in.'},
+      {id:'order',label:'Who we meet first',type:'select',opts:[['AB','A, then B'],['BA','B, then A']],help:'Order of the two leitmotifs in Act I.'},
+      {id:'moods',label:'Act II cues',type:'multi',opts:[['darker','A, darker (modal mixture)'],['threat','C, threat (inverted)'],['pursuit','pursuit (ostinato build)']],help:'How the story darkens before the climax.'},
+      {id:'oddMeter',label:'Meter of the threat cue',type:'select',opts:[[16,'4/4'],[12,'3/4'],[14,'7/8'],[20,'5/4']],help:'An odd meter unsettles the threat.'},
+      {id:'heroic',label:'Heroic climax',type:'range',min:8,max:24,step:2,unit:' bars',help:'A in octaves and thirds, choir, full percussion.'},
+      {id:'meet',label:'A meets B',type:'toggle',help:'The two motifs sound together after the climax.'},
+      {id:'hits',label:'Hits on the cuts',type:'toggle',help:'Impacts and taiko where the picture would cut.'},
+      {id:'epilogue',label:'Epilogue',type:'toggle',help:'A remembered: slowed, on piano, ending on a major chord.'},
+      {id:'cueScale',label:'Cue length',type:'select',opts:[[.75,'short'],[1,'normal'],[1.5,'long']],help:'Scales the length of every cue.'}]}};
+const knobsFor=(mode,L)=>mode==='free'?KNOB_UI.free:mode==='era'?KNOB_UI.era[L]||[]:[];
+const encodeKnobs=K=>{try{const j=JSON.stringify(K);if(j==='{}')return '';return btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}catch(e){return '';}};
+const decodeKnobs=s=>{try{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(escape(atob(s))));}catch(e){return {};}};

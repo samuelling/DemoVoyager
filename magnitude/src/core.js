@@ -59,10 +59,12 @@ function makeMotif(R){
 }
 const varyMotif=(R,m)=>({on:m.on.slice(),mv:m.mv.map((v,i)=>i&&R.chance(.3)?v+R.pick([-1,1]):v),offs:m.offs});
 
-function genSong(seed){
+// ov: optional knobs that override what the seed picks (mode index, key, tempo, swing); the seed's own picks are kept in seedPick
+function genSong(seed,ov={}){
   const R=Rng(hashSeed(seed,1));
-  const [modeName,iv]=MODES[R.wpick([0,1,2,3,4,5],[4,2,1,2,1.5,1])];
-  const minor=iv[2]===3,key=R.ri(0,11),bpm=R.ri(112,152),speed=6,swing=R.chance(.22)?1:0;
+  const mi0=R.wpick([0,1,2,3,4,5],[4,2,1,2,1.5,1]),mi=ov.mode??mi0,[modeName,iv]=MODES[mi];
+  const key0=R.ri(0,11),bpm0=R.ri(112,152),swing0=R.chance(.22)?1:0;
+  const minor=iv[2]===3,key=ov.key??key0,bpm=ov.bpm??bpm0,speed=6,swing=ov.swing??swing0;
   const okProg=p=>p.every(d=>degS(iv,d+4)-degS(iv,d)===7);
   let pool=(minor?PROG_MIN:PROG_MAJ).filter(okProg);if(pool.length<2)pool=(minor?PROG_MIN:PROG_MAJ).filter(p=>p.every(d=>{const f=degS(iv,d+4)-degS(iv,d);return f===7||d===4;}));if(pool.length<2)pool=minor?PROG_MIN:PROG_MAJ;
   const P1=R.pick(pool);let P2=R.pick(pool);for(let k=0;k<6&&P2.join()===P1.join();k++)P2=R.pick(pool);
@@ -168,7 +170,7 @@ function genSong(seed){
   const pats=[],patOf={},sections=[];
   for(const name of form){if(!(name in patOf)){patOf[name]=pats.length;pats.push(build(name));}sections.push({name,pat:patOf[name]});}
   const progTxt=p=>p.map(d=>{const c=chord(d),q=c.third===3?'m':'';const rn=ROMAN[d];return(c.third===3?rn.toLowerCase():rn)+(c.fifth===6?'°':'');}).join('-');
-  return{seed,key,modeName,iv,bpm,speed,swing,pats,sections,inst:null,dStyle,minor,
+  return{seed,key,modeName,iv,bpm,speed,swing,pats,sections,inst:null,dStyle,minor,seedPick:{mode:mi0,key:key0,bpm:bpm0,swing:swing0},
     mat:{P1,P2,s1,s2,D,hStyle,bassT,bassStac,arpType,vib,modUp,m:[m1,m2,m3,m4],sh1,sh2,start1,start2,leadBase,bassBase,chord},
     desc:{key:KEYN[key]+' '+modeName,prog1:progTxt(P1),prog2:progTxt(P2),drums:{four:'FOUR TO THE FLOOR',break:'BREAKBEAT',half:'HALF-TIME',electro:'ELECTRO'}[dStyle],modUp}};
 }

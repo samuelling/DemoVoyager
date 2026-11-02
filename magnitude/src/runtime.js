@@ -14,7 +14,7 @@ function runTier(cfg){
   vis=cfg.makeVisuals(cv,meter);if(!vis){x.fillStyle='#fff';x.fillText('This tier needs WebGL.',20,40);return;}
   resize();
   const hm=/^#?([0-9a-fA-F]{1,8})(-free|-era)?/.exec(location.hash||'');let seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;const mode=hm&&hm[2]?hm[2].slice(1):'shared';
-  function build(sd){meterItems={};const names=genNames(sd),song=genSong(sd),score=mode==='era'?arrangeEra(song,cfg.L):mode==='free'?arrangeFree(song,cfg.L):arrange(song,cfg.L);
+  function build(sd){meterItems={};const names=genNames(sd),song=genSong(sd,KN.song||{}),kk=KN[mode]&&KN[mode][cfg.L],score=mode==='era'?arrangeEra(song,cfg.L,kk):mode==='free'?arrangeFree(song,cfg.L,kk):arrange(song,cfg.L);
     const n=names;n.scroll=`${n.group} PRESENTS ${n.title}  ·  CODE ${n.code}  ·  MUSIC ${n.music}  ·  GRAPHICS ${n.gfx}  ·  GREETINGS TO ${n.greets.join(' · ')}  ·  SEED ${hex8(sd)}  ·  `;
     const R=Rng(hashSeed(sd,13)),pool=cfg.pool.slice();let bag=[];
     const used=[],last=score.secs.length-1,scenes=score.secs.map((s,i)=>{if(i===0)return cfg.intro;if(i===last)return cfg.outro;if(s.sg!==undefined&&i>1&&score.secs[i-1].sg===s.sg)return null; // phrases of one section share its scene
@@ -32,8 +32,9 @@ function runTier(cfg){
   const next=()=>{if(state!=='play')return;state='fadeout';fade=performance.now();};
   cv.parentElement.addEventListener('click',act);
   addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'||e.code==='KeyN'){e.preventDefault();act();}else if(e.code==='KeyF'){try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}catch(_){}}});
-  let shown=true; // the player tells us when the stage is scrolled out of view; then we stop drawing and leave the CPU to the audio
-  addEventListener('message',e=>{if(e.data&&e.data.demoseedCmd==='visible')shown=!!e.data.v;if(e.data&&e.data.demoseedCmd==='next')next();else if(e.data&&e.data.demoseedCmd==='start'&&state==='idle')act();});
+  let shown=true,KN={}; // KN: knobs the player sends (song: key, mode, tempo, swing; per mode and tier: structure)
+ // the player tells us when the stage is scrolled out of view; then we stop drawing and leave the CPU to the audio
+  addEventListener('message',e=>{if(e.data&&e.data.demoseedCmd==='knobs'){KN=e.data.knobs||{};if(state==='play'||state==='fadeout')start(demo.seed);}if(e.data&&e.data.demoseedCmd==='visible')shown=!!e.data.v;if(e.data&&e.data.demoseedCmd==='next')next();else if(e.data&&e.data.demoseedCmd==='start'&&state==='idle')act();});
   let last=performance.now(),T=0;
   function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;
     if(state==='test')return;const W=ov.width,H=ov.height;if(shown||state==='idle')x.clearRect(0,0,W,H);

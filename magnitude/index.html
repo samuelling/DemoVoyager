@@ -78,6 +78,49 @@ h2{margin:0 0 10px;font:600 11px var(--mono);letter-spacing:.14em;text-transform
 .seg2{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
 .seg2 button{border:0;border-radius:0;background:var(--panel);color:var(--muted);padding:8px 12px}
 .seg2 button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+
+/* behind-the-scenes drawer */
+.knobsbtn{border-color:var(--amber);color:var(--amber);position:relative}
+.knobsbtn:hover{background:var(--amber-soft)}
+.knobsbtn.mod::after{content:"";position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--amber);border:2px solid var(--bg)}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);box-sizing:border-box;background:#111317;border-left:1px solid var(--line);z-index:60;overflow-y:auto;overscroll-behavior:contain;
+  padding:calc(18px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 22px;
+  transform:translateX(102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;box-shadow:-20px 0 40px rgba(0,0,0,.45);display:grid;gap:18px;align-content:start}
+.drawer.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dtitle{margin:0;font:800 24px/1.05 var(--display);font-variation-settings:"wdth" 118;text-transform:uppercase;color:var(--fg);letter-spacing:0}
+.dsub{margin:6px 0 0;font:12px var(--mono);color:var(--amber)}
+.dclose{flex:none;width:34px;height:34px;padding:0;font:400 22px/1 var(--body)}
+.dintro{margin:0;font:13.5px/1.55 var(--body);color:var(--muted)}
+.dsec{display:grid;gap:14px}
+.dsec>h3{margin:0;font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:6px;display:flex;justify-content:space-between}
+.dsec>h3 span{letter-spacing:0;text-transform:none;color:var(--dim)}
+.knob{display:grid;gap:5px}
+.knob .kh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.knob label,.knob .kl{font:600 14px var(--body);color:var(--fg)}
+.knob.mod .kl::before,.knob.mod label::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);margin-right:7px;vertical-align:1px}
+.knob .kv{font:500 13px var(--mono);color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap}
+.knob .kp{font:12px/1.45 var(--mono);color:var(--dim)}
+.knob .ks{display:flex;justify-content:space-between;gap:8px;font:11px var(--mono);color:var(--dim)}
+.knob .ks button{background:none;border:0;padding:0;font:11px var(--mono);color:var(--amber);text-decoration:underline;cursor:pointer}
+.knob input[type=range]{width:100%;accent-color:var(--amber)}
+.knob select,.knob input[type=text]{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);color:var(--fg);font:500 14px var(--mono);padding:7px 9px;border-radius:3px}
+.knob input[type=text].bad{border-color:#d9573b}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:500 12px var(--mono);padding:5px 9px;border-radius:14px;background:var(--panel);color:var(--muted);border:1px solid var(--line)}
+.chips button[aria-pressed="true"]{background:var(--amber-soft);color:var(--fg);border-color:var(--amber)}
+.switch{display:inline-flex;align-items:center;gap:8px;font:13px var(--mono);color:var(--muted);cursor:pointer}
+.switch input{accent-color:var(--amber);width:16px;height:16px}
+.dnote{margin:0;font:13px/1.5 var(--mono);color:var(--muted)}
+.dnote button{margin:8px 8px 0 0}
+.dprev svg{display:block;width:100%}
+.dprev text{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+@media (max-width:640px){.drawer{top:auto;left:0;width:100%;height:66vh;height:66dvh;border-left:0;border-top:1px solid var(--line);transform:translateY(102%);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-shadow:0 -20px 40px rgba(0,0,0,.45)}}
+.dfoot{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom,0px));background:#111317;border-top:1px solid var(--line);padding:12px 0 calc(8px + env(safe-area-inset-bottom,0px));display:grid;gap:10px}
+.deffect{font:12.5px/1.6 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.deffect b{color:var(--fg);font-weight:500}.deffect .up{color:var(--amber)}
+.dbtns{display:flex;gap:8px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
 /* form diagram */
 .formhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 18px;margin-bottom:10px}
 .formhead h2{margin:0}
@@ -126,6 +169,7 @@ tr.cur td{color:var(--amber)}
       <button id="nextsong" type="button" title="Fade to the next song (400K and up)">Next song</button>
       <button id="full" type="button">Fullscreen</button>
       <span class="seg2" role="group" aria-label="Song structure"><button type="button" id="mShared" aria-pressed="true">Shared form</button><button type="button" id="mFree" aria-pressed="false">Free form</button><button type="button" id="mEra" aria-pressed="false">Era idioms</button></span>
+      <button id="knobsBtn" class="knobsbtn" type="button" aria-expanded="false" aria-controls="drawer">Behind the scenes</button>
     </div>
   </header>
 
@@ -159,6 +203,13 @@ tr.cur td{color:var(--amber)}
   <p class="note" id="note"></p>
 </div>
 
+<aside id="drawer" class="drawer" aria-label="Behind the scenes">
+  <div class="dhead"><div><h2 class="dtitle">Behind the scenes</h2><p class="dsub" id="dsub"></p></div><button type="button" class="dclose" id="dclose" aria-label="Close">×</button></div>
+  <p class="dintro">These are the knobs that define this tier’s song. The seed sets each one; move any of them and the form, the analysis and the music follow. A dot marks a knob you have moved.</p>
+  <div class="dprev"><svg id="dprev" aria-label="The form, the seed's and yours"></svg></div>
+  <div id="dbody" class="dsec" style="gap:26px"></div>
+  <div class="dfoot"><div class="deffect" id="deffect">Nothing changed yet: this is the seed’s own song.</div><div class="dbtns"><button type="button" id="dresetTier">Reset this tier</button><button type="button" id="dresetAll">Reset everything</button></div></div>
+</aside>
 <script>/* Demoseed core: seed -> names -> composition. Shared by the 400K, 4M and 40M tiers.
    The composition code is the same as Demoseed 40K's, so every tier from 40K up plays the same song for a seed. */
 const ROWS=64,CH=6,SR=22050;
@@ -220,10 +271,12 @@ function makeMotif(R){
 }
 const varyMotif=(R,m)=>({on:m.on.slice(),mv:m.mv.map((v,i)=>i&&R.chance(.3)?v+R.pick([-1,1]):v),offs:m.offs});
 
-function genSong(seed){
+// ov: optional knobs that override what the seed picks (mode index, key, tempo, swing); the seed's own picks are kept in seedPick
+function genSong(seed,ov={}){
   const R=Rng(hashSeed(seed,1));
-  const [modeName,iv]=MODES[R.wpick([0,1,2,3,4,5],[4,2,1,2,1.5,1])];
-  const minor=iv[2]===3,key=R.ri(0,11),bpm=R.ri(112,152),speed=6,swing=R.chance(.22)?1:0;
+  const mi0=R.wpick([0,1,2,3,4,5],[4,2,1,2,1.5,1]),mi=ov.mode??mi0,[modeName,iv]=MODES[mi];
+  const key0=R.ri(0,11),bpm0=R.ri(112,152),swing0=R.chance(.22)?1:0;
+  const minor=iv[2]===3,key=ov.key??key0,bpm=ov.bpm??bpm0,speed=6,swing=ov.swing??swing0;
   const okProg=p=>p.every(d=>degS(iv,d+4)-degS(iv,d)===7);
   let pool=(minor?PROG_MIN:PROG_MAJ).filter(okProg);if(pool.length<2)pool=(minor?PROG_MIN:PROG_MAJ).filter(p=>p.every(d=>{const f=degS(iv,d+4)-degS(iv,d);return f===7||d===4;}));if(pool.length<2)pool=minor?PROG_MIN:PROG_MAJ;
   const P1=R.pick(pool);let P2=R.pick(pool);for(let k=0;k<6&&P2.join()===P1.join();k++)P2=R.pick(pool);
@@ -329,7 +382,7 @@ function genSong(seed){
   const pats=[],patOf={},sections=[];
   for(const name of form){if(!(name in patOf)){patOf[name]=pats.length;pats.push(build(name));}sections.push({name,pat:patOf[name]});}
   const progTxt=p=>p.map(d=>{const c=chord(d),q=c.third===3?'m':'';const rn=ROMAN[d];return(c.third===3?rn.toLowerCase():rn)+(c.fifth===6?'°':'');}).join('-');
-  return{seed,key,modeName,iv,bpm,speed,swing,pats,sections,inst:null,dStyle,minor,
+  return{seed,key,modeName,iv,bpm,speed,swing,pats,sections,inst:null,dStyle,minor,seedPick:{mode:mi0,key:key0,bpm:bpm0,swing:swing0},
     mat:{P1,P2,s1,s2,D,hStyle,bassT,bassStac,arpType,vib,modUp,m:[m1,m2,m3,m4],sh1,sh2,start1,start2,leadBase,bassBase,chord},
     desc:{key:KEYN[key]+' '+modeName,prog1:progTxt(P1),prog2:progTxt(P2),drums:{four:'FOUR TO THE FLOOR',break:'BREAKBEAT',half:'HALF-TIME',electro:'ELECTRO'}[dStyle],modUp}};
 }
@@ -567,7 +620,9 @@ const FREE_SPEC={
 const XF_LABEL={vary:'varied',octave:'octave up',thin:'thinned',transpose:'transposed',fragment:'fragmented',augment:'augmented',reharm:'reharmonised',halftime:'half-time',
   harmony:'in thirds',invert:'inverted',retro:'retrograde',diminish:'diminished',canon:'canon',modal:'modal mixture',meter:'odd meter',sub:'answer',sequence:'sequence',combine:'counterpoint'};
 
-function arrangeFree(song,L){
+function arrangeFree(song,L,knobs){
+  // knobs: optional overrides; kv() returns the override if set, otherwise the seed's own value, and records the seed's value
+  const K=knobs||{},used={},kv=(id,v)=>{used[id]=v;return K[id]!=null?K[id]:v;};
   const SP=FREE_SPEC[L],R=Rng(hashSeed(song.seed,600+L)),M=song.mat,minor=song.minor,up=M.modUp||2;
   const okIn=(iv,d)=>degS(iv,d+4)-degS(iv,d)===7;
   const pool=(minor?PROG_MIN:PROG_MAJ).filter(p=>p.every(d=>okIn(song.iv,d)));
@@ -580,27 +635,32 @@ function arrangeFree(song,L){
   for(let k=2;k<SP.themes;k++){const a=makeMotif(R),b=makeMotif(R);TH[LETTERS[k]]=mkTheme({A:a,B:b,C:varyMotif(R,a)},R.pick(['AABA','ABAC','AAAB','ABAB','AABC']),R.pick(pool.length?pool:[M.P1]),R.pick([0,2,4]));}
   const INST=L===1?{A:'lead',B:'harm'}:L===2?{A:'lead',B:'keys',C:'harm'}:{A:'oboe',B:'bell',C:'piano',D:'lead',E:'keys'};
   // ---- 1. plan: tokens -> nodes, grouped into parts / movements
-  const [pc,...gnames]=R.pick(SP.pieces),groups=pc.split('|');
+  const pk=R.pick(SP.pieces);let layout=kv('layout',pk[0]);if(typeof layout!=='string'||!/^[A-Ebdcktxv|]+$/.test(layout)||!/[A-E]/.test(layout))layout=pk[0];
+  const gnames=layout===pk[0]?pk.slice(1):layout.split('|').map((_,i,a)=>a.length>1?(L===3?'Movement ':'Part ')+(i+1):null),groups=layout.split('|').filter(g=>g.length);
+  // themes the layout names beyond this tier's own get material from their own streams, so the rest of the seed is undisturbed
+  for(const ch of new Set(layout.replace(/[^A-E]/g,'')))if(!TH[ch]){const R2=Rng(hashSeed(song.seed,650+LETTERS.indexOf(ch))),a=makeMotif(R2),b=makeMotif(R2);
+    TH[ch]=mkTheme({A:a,B:b,C:varyMotif(R2,a)},R2.pick(['AABA','ABAC','AAAB','ABAB','AABC']),R2.pick(pool.length?pool:[M.P1]),R2.pick([0,2,4]));if(!INST[ch])INST[ch]=INST.A;}
+  const NX=kv('nx',SP.nx),XF=kv('xf',SP.xf),KEYS=kv('keys',SP.keys),ODD=kv('oddMeter',L===3?55:0)/100,SPLIT=kv('split',L===3?80:0)/100,LS=kv('lenScale',1),PEAK=kv('arcPeak',62)/100,AMP=kv('arcAmp',18)/100;
   const keyOf={A:{tr:0}},seen={},nodes=[],tree={label:'piece',kids:[]};let vcount=0,drops=0,xcount=0;
   const keyFrom=k=>k==='rel'?{tr:0,rel:true}:k==='up'?{tr:up}:{tr:k>6?k-12:k};
-  const pickXf=(n,ban=[])=>{const pool2=SP.xf.filter(x=>!ban.includes(x)),out=[];while(out.length<n&&pool2.length){const x=pool2.splice(R.ri(0,pool2.length-1),1)[0];
+  const pickXf=(n,ban=[])=>{const pool2=XF.filter(x=>!ban.includes(x)),out=[];while(out.length<n&&pool2.length){const x=pool2.splice(R.ri(0,pool2.length-1),1)[0];
     if((x==='augment'&&out.includes('diminish'))||(x==='diminish'&&out.includes('augment')))continue;out.push(x);}return out;};
-  const lenOf=role=>R.pick((SP.lens[role]||SP.lens.state));
+  const lenOf=role=>Math.max(2,Math.round(R.pick((SP.lens[role]||SP.lens.state))*LS/2)*2);
   groups.forEach((g,gi)=>{const grp={label:gnames[gi]||null,kids:[]};
     for(const ch of g){let n;
       if(/[A-E]/.test(ch)){const first=!seen[ch];seen[ch]=(seen[ch]||0)+1;
-        if(first){if(!keyOf[ch])keyOf[ch]=SP.keys.length>1?keyFrom(R.pick(SP.keys.filter(k=>k!==0))):{tr:0};
+        if(first){if(!keyOf[ch]){const ks=KEYS.filter(k=>k!==0&&k!=='0');keyOf[ch]=ks.length?keyFrom(R.pick(ks)):{tr:0};}
           n={role:'state',mat:ch,xf:[],key:keyOf[ch],bars:lenOf('state')};}
-        else{const xf=pickXf(R.ri(1,SP.nx));n={role:'ret',mat:ch,xf,prime:seen[ch]-1,bars:lenOf('ret'),
+        else{const xf=pickXf(Math.round(R.ri(1,SP.nx)*NX/SP.nx));n={role:'ret',mat:ch,xf,prime:seen[ch]-1,bars:lenOf('ret'),
           key:xf.includes('transpose')?{tr:R.pick([5,-2,up,3])}:ch==='A'?{tr:0}:keyOf[ch]};}}
       else if(ch==='b')n={role:'build',mat:'A',xf:[],bars:lenOf('build')};
       else if(ch==='d'){n={role:'drop',mat:'A',xf:drops?['octave']:[],key:{tr:drops?up:0},bars:lenOf('drop')};drops++;}
       else if(ch==='c'){n={role:L===3?'climax':'drop',mat:'A',xf:L===3&&seen.B?['combine']:[],key:{tr:drops?0:up},bars:lenOf(L===3?'combine':'drop')};if(L===3)n.bars=lenOf('climax');drops++;}
-      else if(ch==='k')n={role:'break',mat:seen.B?'B':'A',xf:SP.xf.includes('augment')?['augment']:[],key:{tr:0},bars:lenOf('break')};
+      else if(ch==='k')n={role:'break',mat:seen.B?'B':'A',xf:XF.includes('augment')?['augment']:[],key:{tr:0},bars:lenOf('break')};
       else if(ch==='t')n={role:'bridge',mat:'A',xf:['fragment'],bars:lenOf('bridge')};
       else if(ch==='x'){n={role:'development',mat:xcount%2&&seen.B?'B':'A',xf:['fragment','sequence'].concat(pickXf(1,['vary','thin','octave','transpose','fragment'])),key:{tr:0},bars:lenOf('development')};xcount++;}
       else if(ch==='v'){vcount++;n={role:'variation',mat:'A',xf:pickXf(Math.min(3,vcount),['transpose']),key:{tr:0},var:vcount,bars:lenOf('variation')};}
-      if(L===3&&/development|variation|break/.test(n.role)&&R.chance(.55)){n.meter=R.pick([12,14,20]);n.xf.push('meter');}
+      if((L===3||ODD>0)&&/development|variation|break/.test(n.role)&&R.f()<ODD){n.meter=R.pick([12,14,20]);n.xf.push('meter');}
       if(n.xf.includes('modal')&&n.role!=='ret'&&n.role!=='variation')n.xf=n.xf.filter(x=>x!=='modal');
       n.meter=n.meter||16;grp.kids.push(n);nodes.push(n);}
     tree.kids.push(grp);});
@@ -612,11 +672,12 @@ function arrangeFree(song,L){
   // energy: a base per role, shaped by an arc that peaks near the golden section
   const BASE={intro:.15,state:.5,ret:.65,build:.6,drop:.95,climax:1,break:.2,bridge:.45,development:.6,variation:.45,outro:.25};
   nodes.forEach((n,i)=>{const p=i/(nodes.length-1);let e=BASE[n.role]+(n.role==='state'&&n.mat!=='A'?.05:0)+(n.var?n.var*.1:0);
-    if(!/drop|climax|break|intro|outro/.test(n.role))e+=.18*Math.exp(-Math.pow((p-.62)/.25,2))-.05;n.energy=Math.max(.1,Math.min(1,e));});
+    if(!/drop|climax|break|intro|outro/.test(n.role))e+=AMP*Math.exp(-Math.pow((p-PEAK)/.25,2))-.05;n.energy=Math.max(.1,Math.min(1,e));});
   // 40M: long statements and returns split into phrases (a third level)
   const leaves=[];let sg=0;
   for(const grp of tree.kids){grp.kids=grp.kids.map(n=>{n.sg=sg++;
-    if(L===3&&/state|ret|variation/.test(n.role)&&n.bars>=12&&R.chance(.8)){const pat=R.pick(n.bars===12?[[[6,6],'aa′'],[[4,4,4],'aba'],[[4,8],'ab']]:[[[8,8],'aa′'],[[4,4,8],'aab'],[[8,4,4],'abb′'],[[4,4,4,4],'aba′b']]);
+    if((L===3||SPLIT>0)&&/state|ret|variation/.test(n.role)&&n.bars>=12&&R.f()<SPLIT){const pat=R.pick(n.bars===12?[[[6,6],'aa′'],[[4,4,4],'aba'],[[4,8],'ab']]:[[[8,8],'aa′'],[[4,4,8],'aab'],[[8,4,4],'abb′'],[[4,4,4,4],'aba′b']]);
+      if(n.bars!==12&&n.bars!==16){const k=n.bars/16;pat[0]=pat[0].map(b=>Math.max(2,Math.round(b*k/2)*2));pat[0][pat[0].length-1]+=n.bars-pat[0].reduce((a,b)=>a+b,0);}
       const kids=pat[0].map((b,j)=>{const c=pat[1].replace(/′/g,'')[j],pr=pat[1].split(/(?=[ab])/)[j].includes('′');
         return Object.assign({},n,{bars:b,xf:n.xf.concat(c==='b'?['sub']:[],pr?['vary']:[]),phrase:c+(pr?'′':''),energy:Math.min(1,n.energy+j*.04)});});
       kids.forEach(k=>leaves.push(k));return{label:`${n.mat}: ${pat[1]}`,kids,node:n};}
@@ -626,7 +687,7 @@ function arrangeFree(song,L){
   for(const n of leaves){const m=n.mat+(n.prime?PR[Math.min(4,n.prime)]:'');
     n.name=n.role==='state'?`theme ${n.mat}`+(n.phrase?` ${n.phrase}`:''):n.role==='ret'?m+(n.phrase?` ${n.phrase}`:''):n.role==='variation'?`variation ${n.var}`+(n.phrase?` ${n.phrase}`:''):n.role;}
   const out=renderPlan(song,L,leaves,TH,INST,R);
-  return Object.assign(out,{tree,free:true,themes:TH,inst:INST});
+  return Object.assign(out,{tree,free:true,themes:TH,inst:INST,knobs:used});
 }
 
 
@@ -699,7 +760,7 @@ function renderPlan(song,L,leaves,TH,INST,R){
         else if(mode==='half'){if(s===0)add('kick',t,{v:1});if(s===Math.floor(BL/2))add('snare',t,{v:1});if(s%2===0)add('hat',t,{v:.5});}
         else if(mode==='hats'){if(s%2===0)add('hat',t,{v:s%4?.4:.6});}
         else if(mode==='tribal'){if(s===0||s===6||s===10)add('taiko',t,{v:s?.6:1});if(s%4===2)add('shaker',t,{v:.4});}
-        else if(mode==='roll'){const q=t/len,step=q<.25?4:q<.5?2:q<.75?1:.5,gap=b===bars-1&&s>=BL-4,sv=.3+.7*q;if(!gap&&b<bars-1&&s%4===0)add('kick',t,{v:.8});if(!gap&&s%Math.max(1,step)===0){add(L>=2?'clap':'snare',t,{v:sv});if(step<1)add('snare',t+.5,{v:sv*.8});}}
+        else if(mode==='roll'){const q=t/len,step=q<.25?4:q<.5?2:q<.75?1:.5,gap=b===bars-1&&s>=BL-4*(n.gap??1),sv=.3+.7*q;if(!gap&&b<bars-1&&s%4===0)add('kick',t,{v:.8});if(!gap&&s%Math.max(1,step)===0){add(L>=2?'clap':'snare',t,{v:sv});if(step<1)add('snare',t+.5,{v:sv*.8});}}
         if(inF)add(R.chance(.5)?'tom':'snare',t,{v:.5+.1*(s-BL+4),n:[50,47,45,43][s-BL+4]});}}
     if(mode==='four'||mode==='groove'){if(n.role==='drop'||n.role==='climax'||R.chance(.5))add('crash',0,{v:1});}
     // effects by era
@@ -726,7 +787,8 @@ function renderPlan(song,L,leaves,TH,INST,R){
      40M  "2026"  cinematic hybrid scoring: acts instead of verses. Leitmotifs change mood with the story (solemn, darker, threatening,
                   heroic, remembered), ostinatos and drones carry tension, hits mark the cuts, two motifs meet at the climax. */
 const ERA_LABEL={1:'2003 trance and progressive',2:'2012 EDM',3:'2026 cinematic scoring'};
-function arrangeEra(song,L){
+function arrangeEra(song,L,knobs){
+  const K=knobs||{},used={},kv=(id,v)=>{used[id]=v;return K[id]!=null?K[id]:v;};
   const R=Rng(hashSeed(song.seed,700+L)),M=song.mat,minor=song.minor,up=M.modUp||2;
   const okIn=(iv,d)=>degS(iv,d+4)-degS(iv,d)===7,pool=(minor?PROG_MIN:PROG_MAJ).filter(p=>p.every(d=>okIn(song.iv,d)));
   const mkTheme=(motifs,shape,prog,start)=>{let alt=pool.filter(p=>p.join()!==prog.join());alt=alt.length?R.pick(alt):prog;
@@ -740,50 +802,60 @@ function arrangeEra(song,L){
   const ALL=['kick','hats','snare','bass','arp','pad','lead','counter','fx'];
   if(L===1){
     // ---- 2003: a layering arc, one change every 8 bars
-    const intro=R.pick([[['kick'],['kick','hats']],[['hats'],['hats','kick']],[['kick','hats'],['kick','hats','bass']]]);
-    group('Intro');intro.forEach((ly,i)=>leaf({role:'intro',name:i?`intro + ${ly[ly.length-1]}`:`intro: ${ly.join(', ')}`,layers:ly,drums:'four',bassStyle:'pulse'}));
-    const grow=R.chance(.5)?['bass','arp']:['arp','bass'];let cur=intro[intro.length-1].slice();
-    group('Groove');for(const g of grow){if(cur.includes(g))continue;cur=cur.concat(g);leaf({role:'bridge',name:`groove + ${g}`,layers:cur.slice(),drums:'four',bassStyle:'pulse'});}
+    const INTROS=[[['kick'],['kick','hats']],[['hats'],['hats','kick']],[['kick','hats'],['kick','hats','bass']]];
+    const ii=INTROS.indexOf(R.pick(INTROS)),intro=INTROS[kv('introOrder',ii)]||INTROS[ii],grow0=R.chance(.5)?['bass','arp']:['arp','bass'],bm0=R.chance(.5)?'B':'A',cb0=R.pick([16,16,32]);
+    const STEP=kv('step',8),BEAT=kv('beat','four'),TS=kv('themeSteps',2),BD=kv('breakdown',16),BDK=kv('breakdownKick',false),BU=kv('build',8),CB=kv('climax',cb0),OS=kv('outroSteps',3);
+    group('Intro');intro.forEach((ly,i)=>leaf({role:'intro',name:i?`intro + ${ly[ly.length-1]}`:`intro: ${ly.join(', ')}`,layers:ly,drums:BEAT,bassStyle:'pulse',bars:STEP}));
+    let cur=intro[intro.length-1].slice();
+    group('Groove');for(const g of grow0){if(cur.includes(g))continue;cur=cur.concat(g);leaf({role:'bridge',name:`groove + ${g}`,layers:cur.slice(),drums:BEAT,bassStyle:'pulse',bars:STEP});}
     if(!cur.includes('snare')){cur=cur.concat('snare');}
-    group('Theme');leaf({name:'theme A',layers:cur.concat('lead'),drums:'four',bassStyle:'pulse'});leaf({name:'theme A + pad',layers:cur.concat('lead','pad'),drums:'four',bassStyle:'pulse',xf:['vary']});
-    group('Breakdown');const bm=R.chance(.5)?'B':'A';leaf({role:'break',mat:bm,name:'breakdown: pad',layers:['pad','fx'],drums:'none',energy:.15});
-    leaf({role:'break',mat:bm,name:`breakdown + theme ${bm}`,layers:['pad','lead','fx'],drums:'none',xf:['augment'],energy:.25});
-    group('Build');leaf({role:'build',name:'build: snare roll',layers:['snare','pad','arp','fx','bass'],energy:.7});
-    const cb=R.pick([16,16,32]);group('Climax');for(let b=0;b<cb;b+=8)leaf({role:'drop',name:b?`climax ${b/8+1}, in thirds`:'climax',layers:ALL.slice(),drums:'four',bassStyle:'octave',xf:b?['octave','harmony']:['octave'],energy:1});
-    group('Outro');let out=['kick','hats','snare','bass','arp','pad'];for(const rm of ['pad','arp','bass']){out=out.filter(x=>x!==rm);leaf({role:'outro',name:`outro − ${rm}`,layers:out.slice(),drums:'four',bassStyle:'pulse'});}
+    group('Theme');for(let i=0;i<TS;i++)leaf({name:i===0?'theme A':i===1?'theme A + pad':`theme A, pass ${i+1}`,layers:i?cur.concat('lead','pad'):cur.concat('lead'),drums:BEAT,bassStyle:'pulse',xf:i?['vary']:[],bars:STEP});
+    if(BD>0){group('Breakdown');const h1=Math.max(2,Math.round(BD/4)*2),h2=BD-h1,kk=BDK?['kick']:[];leaf({role:'break',mat:bm0,name:'breakdown: pad',layers:['pad','fx',...kk],drums:BDK?'four':'none',energy:.15,bars:h1});
+      if(h2>0)leaf({role:'break',mat:bm0,name:`breakdown + theme ${bm0}`,layers:['pad','lead','fx',...kk],drums:BDK?'four':'none',xf:['augment'],energy:.25,bars:h2});}
+    if(BU>0){group('Build');leaf({role:'build',name:'build: snare roll',layers:['snare','pad','arp','fx','bass'],energy:.7,bars:BU});}
+    group('Climax');for(let b=0;b<CB;b+=8)leaf({role:'drop',name:b?`climax ${b/8+1}, in thirds`:'climax',layers:ALL.slice(),drums:BEAT,bassStyle:'octave',xf:b?['octave','harmony']:['octave'],energy:1,bars:Math.min(8,CB-b)});
+    if(OS>0){group('Outro');let out=['kick','hats','snare','bass','arp','pad'];for(const rm of ['pad','arp','bass','snare'].slice(0,OS)){out=out.filter(x=>x!==rm);leaf({role:'outro',name:`outro − ${rm}`,layers:out.slice(),drums:BEAT,bassStyle:'pulse',bars:STEP});}}
   }
   else if(L===2){
     // ---- 2012: build and drop
-    const style=R.pick(['four','half']),other=style==='four'?'half':'four',switchUp=R.chance(.55);
-    const dropLeaf=(name,st,o={})=>leaf(Object.assign({role:'drop',name,drums:st,bassStyle:st==='half'?'sub':'octave',energy:1,layers:ALL.slice(),xf:[]},o));
+    const style0=R.pick(['four','half']),sw0=R.chance(.55),brk0=R.pick([8,16]);
+    const style=kv('dropStyle',style0),other=style==='four'?'half':'four',second=kv('secondDrop',sw0?'switch':'lift'),VB=kv('verse',16),CA=kv('callAnswer',true),BU=kv('build',8),GAP=kv('gap',1),BRK=kv('break',brk0),DB=kv('dropBars',16);
+    const h=b=>[Math.max(2,Math.round(b/4)*2),b-Math.max(2,Math.round(b/4)*2)];
+    const dropLeaf=(name,st,o={})=>leaf(Object.assign({role:'drop',name,drums:st,bassStyle:st==='half'?'sub':'octave',energy:1,layers:ALL.slice(),xf:[],bars:DB/2},o));
+    const ca=x=>CA?x:x.filter(y=>y!=='callresp');
     group('Intro');leaf({role:'intro',name:'intro',layers:['pad','arp','hats','fx'],drums:'hats',energy:.2});
-    group('Verse');leaf({name:'verse: call',layers:['kick','hats','bass','pad','lead'],drums:'groove',bassStyle:'pulse',xf:['callresp','thin'],energy:.5});
-    leaf({name:'verse: call and answer',layers:['kick','hats','snare','bass','pad','lead','arp'],drums:'groove',bassStyle:'pulse',xf:['callresp'],energy:.6});
-    group('Build');leaf({role:'build',name:'build',layers:['snare','pad','arp','fx','bass','lead'],xf:['fragment']});
-    group('Drop');dropLeaf(style==='half'?'drop (half-time)':'drop',style);dropLeaf('drop, answered',style,{xf:['callresp','harmony']});
-    group('Break');leaf({role:'break',mat:'B',name:'break',layers:['pad','lead','fx'],drums:'none',xf:['augment'],energy:.2,bars:R.pick([8,16])});
-    group('Build 2');leaf({role:'build',name:'build 2',layers:['snare','pad','arp','fx','bass','lead','kick'],xf:['fragment']});
-    group('Drop 2');if(switchUp){dropLeaf(other==='half'?'switch-up (half-time)':'switch-up (four)',other);dropLeaf('switch-up, answered',other,{xf:['callresp','harmony']});}
-    else{dropLeaf('drop 2, lifted',style,{key:{tr:up},xf:['transpose','octave']});dropLeaf('drop 2, in thirds',style,{key:{tr:up},xf:['transpose','harmony']});}
+    if(VB>0){group('Verse');const [v1,v2]=VB>=8?[VB/2,VB/2]:[VB,0];leaf({name:CA?'verse: call':'verse',layers:['kick','hats','bass','pad','lead'],drums:'groove',bassStyle:'pulse',xf:ca(['callresp','thin']),energy:.5,bars:v1});
+      if(v2)leaf({name:CA?'verse: call and answer':'verse 2',layers:['kick','hats','snare','bass','pad','lead','arp'],drums:'groove',bassStyle:'pulse',xf:ca(['callresp']),energy:.6,bars:v2});}
+    if(BU>0){group('Build');leaf({role:'build',name:'build',layers:['snare','pad','arp','fx','bass','lead'],xf:['fragment'],bars:BU,gap:GAP});}
+    group('Drop');dropLeaf(style==='half'?'drop (half-time)':'drop',style);dropLeaf(CA?'drop, answered':'drop, in thirds',style,{xf:ca(['callresp','harmony'])});
+    if(second!=='none'){if(BRK>0){group('Break');leaf({role:'break',mat:'B',name:'break',layers:['pad','lead','fx'],drums:'none',xf:['augment'],energy:.2,bars:BRK});}
+      if(BU>0){group('Build 2');leaf({role:'build',name:'build 2',layers:['snare','pad','arp','fx','bass','lead','kick'],xf:['fragment'],bars:BU,gap:GAP});}
+      group('Drop 2');if(second==='switch'){dropLeaf(other==='half'?'switch-up (half-time)':'switch-up (four)',other);dropLeaf(CA?'switch-up, answered':'switch-up, in thirds',other,{xf:ca(['callresp','harmony'])});}
+      else{dropLeaf('drop 2, lifted',style,{key:{tr:up},xf:['transpose','octave']});dropLeaf('drop 2, in thirds',style,{key:{tr:up},xf:['transpose','harmony']});}}
     group('Outro');leaf({role:'outro',name:'outro',layers:['pad','arp','hats','kick','fx'],drums:'groove',energy:.3});
   }
   else{
     // ---- 2026: acts and leitmotifs
-    const len=()=>R.pick([8,10,12,12,16]),odd=R.chance(.6)?R.pick([12,14,20]):16,bFirst=R.chance(.3);
-    group('Opening');leaf({role:'intro',name:'opening: drone',inst:'piano',layers:['pad','lead','fx'],xf:['drone','swell','augment'],energy:.15,bars:len()});
-    group('Act I');const stA=leaf({name:'A · statement',inst:'oboe',bars:len(),energy:.6,layers:['pad','arp','lead','bass','counter']});
-    const stB=leaf({mat:'B',name:'B · introduced',inst:'bell',key:{tr:0,rel:true},xf:['hit'],bars:len(),energy:.5,layers:['pad','arp','lead','bass','hats']});
-    if(bFirst){grp.kids.reverse();}
-    group('Act II');leaf({name:'A · darker',inst:'oboe',xf:['modal','ostinato'],drums:'tribal',bars:len(),energy:.55,layers:['pad','arp','lead','kick','hats','bass']});
-    leaf({mat:'C',name:'C · threat',inst:'piano',xf:['invert','ostinato'],drums:'tribal',meter:odd,bars:len(),energy:.65,layers:['arp','lead','kick','hats','bass','pad']});
-    leaf({role:'build',name:'pursuit',xf:['ostinato','fragment'],bars:8,energy:.8,layers:['arp','snare','kick','pad','fx','lead','bass']});
-    group('Act III');leaf({role:'climax',name:'A · heroic',inst:'leadx',xf:['hit','octave','harmony'],drums:'groove',bars:R.pick([12,16]),energy:1,layers:ALL.slice()});
-    if(R.chance(.7))leaf({role:'climax',name:'A meets B',xf:['combine'],drums:'half',bars:len(),energy:.9,layers:ALL.slice()});
-    group('Epilogue');leaf({role:'outro',name:'A · remembered',inst:'piano',xf:['augment','drone','modal'],bars:8,energy:.2,layers:['pad','lead','fx']});
+    // every seeded choice is drawn first, in the original order, so a knob changes only what it names
+    const lens=[0,0,0,0,0,0,0].map(()=>R.pick([8,10,12,12,16]));const odd0=R.chance(.6)?R.pick([12,14,20]):16,bFirst0=R.chance(.3),her0=R.pick([12,16]),meet0=R.chance(.7),meetLen=R.pick([8,10,12,12,16]);
+    const SC=kv('cueScale',1),cue=b=>Math.max(4,Math.round(b*SC/2)*2),OPEN=kv('opening',lens[0]),ORDER=kv('order',bFirst0?'BA':'AB'),MOODS=kv('moods',['darker','threat','pursuit']),ODD=kv('oddMeter',odd0),
+      HER=kv('heroic',her0),MEET=kv('meet',meet0),HITS=kv('hits',true),EPI=kv('epilogue',true);
+    const hit=x=>HITS?x:x.filter(y=>y!=='hit');
+    group('Opening');leaf({role:'intro',name:'opening: drone',inst:'piano',layers:['pad','lead','fx'],xf:['drone','swell','augment'],energy:.15,bars:OPEN});
+    group('Act I');leaf({name:'A · statement',inst:'oboe',bars:cue(lens[1]),energy:.6,layers:['pad','arp','lead','bass','counter']});
+    leaf({mat:'B',name:'B · introduced',inst:'bell',key:{tr:0,rel:true},xf:hit(['hit']),bars:cue(lens[2]),energy:.5,layers:['pad','arp','lead','bass','hats']});
+    if(ORDER==='BA'){grp.kids.reverse();}
+    if(MOODS.length){group('Act II');
+      if(MOODS.includes('darker'))leaf({name:'A · darker',inst:'oboe',xf:['modal','ostinato'],drums:'tribal',bars:cue(lens[3]),energy:.55,layers:['pad','arp','lead','kick','hats','bass']});
+      if(MOODS.includes('threat'))leaf({mat:'C',name:'C · threat',inst:'piano',xf:['invert','ostinato'].concat(ODD!==16?['meter']:[]),drums:'tribal',meter:ODD,bars:cue(lens[4]),energy:.65,layers:['arp','lead','kick','hats','bass','pad']});
+      if(MOODS.includes('pursuit'))leaf({role:'build',name:'pursuit',xf:['ostinato','fragment'],bars:cue(8),energy:.8,layers:['arp','snare','kick','pad','fx','lead','bass']});}
+    group('Act III');leaf({role:'climax',name:'A · heroic',inst:'leadx',xf:hit(['hit','octave','harmony']),drums:'groove',bars:cue(HER),energy:1,layers:ALL.slice()});
+    if(MEET)leaf({role:'climax',name:'A meets B',xf:['combine'],drums:'half',bars:cue(meetLen),energy:.9,layers:ALL.slice()});
+    if(EPI){group('Epilogue');leaf({role:'outro',name:'A · remembered',inst:'piano',xf:['augment','drone','modal'],bars:8,energy:.2,layers:['pad','lead','fx']});}
   }
   const leaves=[];for(const g of tree.kids)for(const k of g.kids){k.group=g.label;leaves.push(k);}
   const out=renderPlan(song,L,leaves,TH,INST,R);
-  return Object.assign(out,{tree,era:true,themes:TH,inst:INST});
+  return Object.assign(out,{tree,era:true,themes:TH,inst:INST,knobs:used});
 }
 
 </script>
@@ -810,14 +882,14 @@ function trackerEvents(song){const ev=[];let R0=0;for(const s of song.sections){
       open={i,t:R0+r,d:1,v};if(c===3&&cl.fx===0&&cl.p)open.ns=[n,n+(cl.p>>4),n+(cl.p&15)];else open.n=n;ev.push(open);}}if(open)open.d=R0+ROWS-open.t;}
   for(let r=0;r<ROWS;r++)for(const c of [0,1]){const cl=P[r][c];if(cl.n>0)ev.push({i:cl.i===1?'kick':cl.i===2?'snare':'hat',t:R0+r,v:cl.fx===0xC?Math.max(.15,cl.p/64):1});}R0+=ROWS;}return ev;}
 const sharedThemes=song=>{const M=song.mat;return{A:{motifs:{A:M.m[0],B:M.m[1]},shape:M.sh1,prog:M.P1,start:M.start1},B:{motifs:{A:M.m[2],B:M.m[3]},shape:M.sh2,prog:M.P2,start:M.start2}};};
-function composeAll(sd,mode){if(mode===true)mode='free';if(!mode)mode='shared';const free=mode!=='shared';const song=genSong(sd),res=[];
+function composeAll(sd,mode,K){if(mode===true)mode='free';if(!mode)mode='shared';K=K||{};const free=mode!=='shared';const song0=genSong(sd),song=K.song&&Object.keys(K.song).length?genSong(sd,K.song):song0,res=[];
   const k4=[['intro','intro',.15],['groove','build',.4],['A','A',.7],['A','A',.7],['break','break',.25],['B','B',.7],['B','B',.7],['groove','build',.5],['A lift','A',.85],['outro','outro',.3]];
   res.push({secs:k4.map(([n,m,e],i)=>({name:n,start:i*64,len:64,bars:4,meter:16,role:/^[AB]/.test(m)?(i===2||i===5?'state':'ret'):m,mat:/^[AB]/.test(m)?m:null,xf:n==='A lift'?['transpose']:[],key:n==='A lift'?2:0,energy:e})),rows:640,levels:1,ev:null,len:null});
-  {const secs=sharedSecs(song.sections.map(s=>[s.name,ROWS]),song,0);res.push({secs,rows:song.sections.length*ROWS,levels:1,ev:trackerEvents(song),len:timeOf(song,song.sections.length*ROWS),themes:sharedThemes(song),inst:{A:'lead',B:'lead'}});}
-  for(const L of [1,2,3]){const sc=mode==='era'?arrangeEra(song,L):mode==='free'?arrangeFree(song,L):arrange(song,L);
+  {const S0=song0,secs=sharedSecs(S0.sections.map(s=>[s.name,ROWS]),S0,0);res.push({secs,rows:S0.sections.length*ROWS,levels:1,ev:trackerEvents(S0),len:timeOf(S0,S0.sections.length*ROWS),themes:sharedThemes(S0),inst:{A:'lead',B:'lead'},song:S0});}
+  for(const L of [1,2,3]){const kk=K[mode]&&K[mode][L],sc=mode==='era'?arrangeEra(song,L,kk):mode==='free'?arrangeFree(song,L,kk):arrange(song,L);
     const secs=free?sc.secs.map(x=>Object.assign({},x,{tr:x.rel?x.key-(song.minor?3:-3):x.key,mat:/intro|outro|build|bridge/.test(x.role)?null:x.mat})):sharedSecs(sc.secs.map(x=>[x.name,x.len]),song,L);
     const levels=free?(sc.tree.kids.some(g=>g.kids.some(k=>k.kids))?3:sc.tree.kids.some(g=>g.label)?2:1):1;
-    res.push({secs,rows:sc.rows,levels,ev:sc.ev,tree:free?sc.tree:null,len:timeOf(song,sc.rows),themes:free?sc.themes:sharedThemes(song),inst:free?sc.inst:[null,{A:'lead',B:'lead'},{A:'lead',B:'keys'},{A:'oboe',B:'bell'}][L]});}
+    res.push({secs,rows:sc.rows,levels,ev:sc.ev,tree:free?sc.tree:null,song,knobs:sc.knobs||null,len:timeOf(song,sc.rows),themes:free?sc.themes:sharedThemes(song),inst:free?sc.inst:[null,{A:'lead',B:'lead'},{A:'lead',B:'keys'},{A:'oboe',B:'bell'}][L]});}
   for(const r of res)r.sim=r.ev?similarity(r,song):null;
   for(const r of res)if(r.sim)r.idiom=idiomStats(r);
   return{song,res,free,mode};}
@@ -947,10 +1019,57 @@ async function offerMidi(base,bytes,say){const safe=base.replace(/[^A-Za-z0-9 ._
     try{await dl.save({filename:safe+'.zip',data:zipStore([{name:safe+'.mid',data:bytes}])});say('Saved as a zip with the .mid inside.');}
     catch(e){say(e&&e.code==='declined'?'Download cancelled.':e&&e.code==='rate_limited'?'A download prompt is already open.':'The download could not start here.');}return;}
   const url=URL.createObjectURL(new Blob([bytes],{type:'audio/midi'})),a=document.createElement('a');a.href=url;a.download=safe+'.mid';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);say('Downloaded '+safe+'.mid');}
+
+// ---- the knobs: what each mode and era exposes, with plain descriptions of what they change
+const XF_ALL=['vary','octave','thin','transpose','fragment','augment','reharm','halftime','harmony','invert','retro','diminish','canon','modal'];
+const KNOB_UI={
+  song:[{id:'key',label:'Key',type:'select',opts:KEYS.map((k,i)=>[i,k]),help:'The tonic of the whole song.'},
+    {id:'mode',label:'Mode',type:'select',opts:MODES.map((m,i)=>[i,m[0].toLowerCase()]),help:'The scale’s colour. Changing it also changes which chord progressions the composer can use.'},
+    {id:'bpm',label:'Tempo',type:'range',min:70,max:180,step:1,unit:' bpm',help:'Beats per minute.'},
+    {id:'swing',label:'Swing',type:'toggle',help:'Delays every second sixteenth, the tracker way.'}],
+  free:[{id:'layout',label:'Layout',type:'text',help:'The plan, one token per section. Capitals are themes (first time a statement, later a return). b build, d drop, c climax, k break, t bridge, x development, v variation. | starts a new part.'},
+    {id:'nx',label:'Changes per return',type:'range',min:0,max:3,step:1,help:'How many transformations a returning theme may carry. More is richer and harder to recognise.'},
+    {id:'xf',label:'Transformation palette',type:'multi',opts:XF_ALL.map(x=>[x,XF_LABEL[x]]),help:'Which transformations returns, developments and variations may draw from.'},
+    {id:'keys',label:'Keys new themes may move to',type:'multi',opts:[['rel','relative'],[5,'subdominant'],[7,'dominant'],['up','lift'],[-2,'down a tone'],[3,'up a minor third']],help:'None ticked keeps every theme in the home key.'},
+    {id:'oddMeter',label:'Odd meters',type:'range',min:0,max:100,step:5,unit:'%',help:'Chance that a development, variation or break leaves 4/4 for 3/4, 7/8 or 5/4.'},
+    {id:'split',label:'Phrase splitting',type:'range',min:0,max:100,step:5,unit:'%',help:'Chance that a long section splits into phrases: the third level of structure.'},
+    {id:'lenScale',label:'Section length',type:'select',opts:[[.5,'short'],[1,'normal'],[1.5,'long'],[2,'very long']],help:'Scales every section’s length.'},
+    {id:'arcPeak',label:'Where the swell peaks',type:'range',min:0,max:100,step:1,unit:'%',help:'Position of the energy peak across the piece. The golden section is 62%.'},
+    {id:'arcAmp',label:'Swell strength',type:'range',min:0,max:40,step:1,help:'How much the energy rises toward that peak.'}],
+  era:{
+    1:[{id:'step',label:'Bars per layer change',type:'select',opts:[[4,'4 bars'],[8,'8 bars'],[16,'16 bars']],help:'The trance unit: one part enters or leaves every this many bars.'},
+      {id:'introOrder',label:'How the track opens',type:'select',opts:[[0,'kick, then hats'],[1,'hats, then kick'],[2,'kick and hats, then bass']],help:'Which layers start the build-up.'},
+      {id:'beat',label:'Beat',type:'select',opts:[['four','four on the floor'],['groove','the seed’s breakbeat']],help:'Trance runs on four on the floor; the breakbeat leans progressive.'},
+      {id:'themeSteps',label:'Theme passes',type:'range',min:1,max:4,step:1,help:'How many layer steps carry the main riff before the breakdown.'},
+      {id:'breakdown',label:'Breakdown',type:'range',min:0,max:32,step:4,unit:' bars',help:'Drums drop out; pad and melody alone. 0 removes it.'},
+      {id:'breakdownKick',label:'Keep the kick in the breakdown',type:'toggle',help:'A harder, club-style breakdown.'},
+      {id:'build',label:'Snare-roll build',type:'range',min:0,max:16,step:2,unit:' bars',help:'The accelerating roll that sets up the climax.'},
+      {id:'climax',label:'Climax',type:'range',min:8,max:64,step:8,unit:' bars',help:'Every layer back, the riff an octave up and then in thirds.'},
+      {id:'outroSteps',label:'Outro strip-down',type:'range',min:0,max:4,step:1,unit:' steps',help:'Layers removed one by one at the end.'}],
+    2:[{id:'dropStyle',label:'Drop style',type:'select',opts:[['four','big room, four on the floor'],['half','half-time, dubstep and trap']],help:'The two drops of the 2010s.'},
+      {id:'secondDrop',label:'Second drop',type:'select',opts:[['switch','switch-up to the other style'],['lift','same style, key lifted'],['none','one drop only']],help:'How the track tops its first drop.'},
+      {id:'verse',label:'Verse',type:'range',min:0,max:32,step:8,unit:' bars',help:'Hooks before the first build. 0 goes straight to the build.'},
+      {id:'callAnswer',label:'Call and answer',type:'toggle',help:'Lead states a bar, keys answer it.'},
+      {id:'build',label:'Build',type:'range',min:0,max:16,step:2,unit:' bars',help:'Snare roll, riser and a fragment of the hook climbing.'},
+      {id:'gap',label:'Silence before the drop',type:'range',min:0,max:4,step:1,unit:' beats',help:'The held breath before the impact.'},
+      {id:'dropBars',label:'Drop',type:'range',min:8,max:32,step:8,unit:' bars',help:'Length of each drop.'},
+      {id:'break',label:'Break between drops',type:'range',min:0,max:16,step:4,unit:' bars',help:'Theme B on keys, no drums.'}],
+    3:[{id:'opening',label:'Opening drone',type:'range',min:4,max:16,step:2,unit:' bars',help:'Piano over a held drone, swelling in.'},
+      {id:'order',label:'Who we meet first',type:'select',opts:[['AB','A, then B'],['BA','B, then A']],help:'Order of the two leitmotifs in Act I.'},
+      {id:'moods',label:'Act II cues',type:'multi',opts:[['darker','A, darker (modal mixture)'],['threat','C, threat (inverted)'],['pursuit','pursuit (ostinato build)']],help:'How the story darkens before the climax.'},
+      {id:'oddMeter',label:'Meter of the threat cue',type:'select',opts:[[16,'4/4'],[12,'3/4'],[14,'7/8'],[20,'5/4']],help:'An odd meter unsettles the threat.'},
+      {id:'heroic',label:'Heroic climax',type:'range',min:8,max:24,step:2,unit:' bars',help:'A in octaves and thirds, choir, full percussion.'},
+      {id:'meet',label:'A meets B',type:'toggle',help:'The two motifs sound together after the climax.'},
+      {id:'hits',label:'Hits on the cuts',type:'toggle',help:'Impacts and taiko where the picture would cut.'},
+      {id:'epilogue',label:'Epilogue',type:'toggle',help:'A remembered: slowed, on piano, ending on a major chord.'},
+      {id:'cueScale',label:'Cue length',type:'select',opts:[[.75,'short'],[1,'normal'],[1.5,'long']],help:'Scales the length of every cue.'}]}};
+const knobsFor=(mode,L)=>mode==='free'?KNOB_UI.free:mode==='era'?KNOB_UI.era[L]||[]:[];
+const encodeKnobs=K=>{try{const j=JSON.stringify(K);if(j==='{}')return '';return btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}catch(e){return '';}};
+const decodeKnobs=s=>{try{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(escape(atob(s))));}catch(e){return {};}};
 </script>
 <script>
 (()=>{
-const SIZES={"4k": 4039, "40k": 32358, "400k": 87643, "4m": 82686, "40m": 86648};
+const SIZES={"4k": 4039, "40k": 32358, "400k": 90147, "4m": 85190, "40m": 89152};
 const KB=1024,MB=1048576;
 const T=[
  {id:'4k',label:'4K',ceil:4*KB,era:'1995',rule:'file',L:-1,
@@ -985,7 +1104,7 @@ const T=[
 const fmt=b=>b>=MB?(b/MB).toFixed(b>=10*MB?1:2)+' MB':b>=KB?(b/KB).toFixed(b>=10*KB?1:2)+' KB':b+' B';
 const X=b=>Math.max(0,Math.min(1,(Math.log10(b)-3)/(Math.log10(100*MB)-3)))*100;
 const $=id=>document.getElementById(id);
-let tier=1,seed=0,started=false,live={},form=null,mode='shared';
+let tier=1,seed=0,started=false,live={},form=null,mode='shared',K={},form0=null;
 try{const k=localStorage.getItem('oom-tier');if(k!==null&&T[+k])tier=+k;const mm=localStorage.getItem('oom-mode');if(['shared','free','era'].includes(mm))mode=mm;}catch(e){}
 const hm=/^#?([0-9a-fA-F]{1,8})(-free|-era)?$/.exec(location.hash||'');seed=hm?parseInt(hm[1],16)>>>0:(Math.random()*4294967296)>>>0;if(hm)mode=hm[2]?hm[2].slice(1):'shared';
 const sfx=()=>mode==='shared'?'':'-'+mode;
@@ -994,7 +1113,7 @@ const sfx=()=>mode==='shared'?'':'-'+mode;
 for(const [b,l] of [[KB,'1 KB'],[10*KB,'10 KB'],[100*KB,'100 KB'],[MB,'1 MB'],[10*MB,'10 MB'],[100*MB,'100 MB']]){const d=document.createElement('div');d.className='tick';d.style.left=X(b)+'%';d.innerHTML='<span>'+l+'</span>';$('axis').appendChild(d);}
 T.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.className='stop';b.style.left=X(t.ceil)+'%';b.innerHTML=`<span class="sz">${t.label}</span><span class="era">${t.era}</span>`;b.onclick=()=>pick(i);t.el=b;$('stops').appendChild(b);});
 
-let playX=null;
+let playX=null;const updateDrawerMarksSafe=()=>{};
 function drawDiagram(){playX=formDiagram($('diag'),form.res[tier],form.song,{detail:t=>{$('detail').textContent=t;},legend:$('legend')});}
 
 function drawSSM(){const r=form.res[tier],cv=$('ssm'),x=cv.getContext('2d');x.fillStyle='#14161a';x.fillRect(0,0,cv.width,cv.height);
@@ -1024,7 +1143,7 @@ function drawCompare(){const svg=$('cmp');svg.innerHTML='';const W=Math.max(300,
     shared:'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form or Era idioms to let each tier write its own structure.'}[form.mode];
     'Shared form: every tier from 40K up follows the same song; larger tiers re-arrange or recompose it within a fixed plan. Switch to Free form to let each tier write its own structure.';}
 
-function drawForm(){$('midiBtn').disabled=tier===0;$('midiBtn').title=tier===0?'The 4K song is made inside the packed 4K file and cannot be exported':'Download this tier\'s song as a multitrack MIDI file';$('midiSay').textContent='';$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${sfx()}-${['40k','40k','400k','4m','40m'][tier]}`;const r=form.res[tier],song=form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
+function drawForm(){updateDrawerMarksSafe();$('midiBtn').disabled=tier===0;$('midiBtn').title=tier===0?'The 4K song is made inside the packed 4K file and cannot be exported':'Download this tier\'s song as a multitrack MIDI file';$('midiSay').textContent='';{const ek=encodeKnobs(K);$('dissectLink').href=`dissect.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${sfx()}-${['40k','40k','400k','4m','40m'][tier]}${ek?'.k'+ek:''}`;}const r=form.res[tier],song=r.song||form.song,st=stats(r),m=r.len?Math.floor(r.len/60)+':'+String(Math.round(r.len%60)).padStart(2,'0'):'';
   $('formTitle').textContent=`Form at ${T[tier].label}`+(tier>=2?' · '+{shared:'shared form',free:'free form',era:'era idioms'}[mode]:'');$('detail').textContent='Hover or tap a section for details.';
   drawDiagram();drawSSM();drawCompare();
   let ev=0;if(r.ev)for(const e of r.ev)ev+=e.ns?e.ns.length:1;
@@ -1041,13 +1160,13 @@ function drawCols(){const t=T[tier];$('cols').innerHTML=`<div><h3>Composition</h
   $('note').textContent=t.rule==='mem'?'At 4M and 40M the code is free; the meter counts every texture, render target, mesh, sample bank and impulse response the demo builds while it runs.':tier===0?'The 4K tier has room only for its own tiny composer, so its song differs from the others. Every tier from 40K up starts from the same composition for a given seed.':'From 40K up, the seed produces the same composition; each tier then arranges, voices and pictures it as far as its limit allows.';}
 
 function load(){const t=T[tier],f=$('frame');live={};const nf=f.cloneNode();nf.src=`tiers/${t.id}.html#${seed.toString(16).toUpperCase().padStart(8,'0')}${t.L>0?sfx():''}`;f.replaceWith(nf);
-  nf.addEventListener('load',()=>{try{nf.contentWindow.postMessage({demoseedCmd:'visible',v:stageShown},'*');}catch(e){}if(started&&t.L>0)try{nf.contentWindow.postMessage({demoseedCmd:'start'},'*');}catch(e){}});
+  nf.addEventListener('load',()=>{try{nf.contentWindow.postMessage({demoseedCmd:'visible',v:stageShown},'*');if(hasKnobs())nf.contentWindow.postMessage({demoseedCmd:'knobs',knobs:K},'*');}catch(e){}if(started&&t.L>0)try{nf.contentWindow.postMessage({demoseedCmd:'start'},'*');}catch(e){}});
   T.forEach((x,i)=>x.el.setAttribute('aria-pressed',i===tier));$('seed').value=seed.toString(16).toUpperCase().padStart(8,'0');
   $('nowplaying').innerHTML=t.L>0&&started?'<b>Starting…</b>':'<b>Click the screen to start.</b> '+(t.id==='40k'?'It boots from DOS.':'');
   $('nextsong').disabled=t.L<1;try{history.replaceState(null,'','#'+$('seed').value+sfx());}catch(e){}
   $('mShared').setAttribute('aria-pressed',mode==='shared');$('mFree').setAttribute('aria-pressed',mode==='free');$('mEra').setAttribute('aria-pressed',mode==='era');
   $('sub').textContent='One seed, five size limits, thirty years of demo scene. '+{shared:'Same song at every tier from 40K up.',free:'Same material at every tier; each tier writes its own form.',era:'Same material at every tier; each tier writes its form in its own era’s idiom.'}[mode];
-  drawForm();drawMeter();drawCols();}
+  drawForm();drawMeter();drawCols();renderDrawer();}
 // when the stage scrolls out of view the demo stops drawing, so scrolling and reading never starve the music
 // visuals draw only while the whole stage is in view and the page is still; any scroll away from it freezes the picture
 let stageShown=true,inView=true,scrolling=0;
@@ -1055,11 +1174,12 @@ const sendVis=()=>{const v=inView&&!scrolling;if(v===stageShown)return;stageShow
 try{new IntersectionObserver(es=>{for(const e of es)inView=e.intersectionRect.height>=0.6*Math.min(e.boundingClientRect.height,innerHeight);sendVis();},{threshold:[0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1]}).observe($('stage'));}catch(e){}
 addEventListener('scroll',()=>{clearTimeout(scrolling);scrolling=setTimeout(()=>{scrolling=0;sendVis();},250);sendVis();},{passive:true});
 function pick(i){tier=i;try{localStorage.setItem('oom-tier',i);}catch(e){}load();}
-function setSeed(s){seed=s>>>0;form=composeAll(seed,mode);load();}
-function setMode(m){mode=m;try{localStorage.setItem('oom-mode',m);}catch(e){}form=composeAll(seed,mode);load();}
+function recompose(){form=composeAll(seed,mode,K);form0=hasKnobs()?composeAll(seed,mode):form;}
+function setSeed(s){seed=s>>>0;recompose();load();}
+function setMode(m){mode=m;try{localStorage.setItem('oom-mode',m);}catch(e){}recompose();load();}
 
 addEventListener('message',e=>{const d=e.data;if(!d||!d.demoseed)return;live=d;if(d.state==='play'||d.state==='fadeout')started=true;
-  if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;form=composeAll(seed,mode);$('seed').value=d.seed;drawForm();try{history.replaceState(null,'','#'+d.seed+sfx());}catch(_){}}
+  if(d.seed&&parseInt(d.seed,16)!==seed){seed=parseInt(d.seed,16)>>>0;recompose();$('seed').value=d.seed;drawForm();renderDrawer();try{history.replaceState(null,'','#'+d.seed+sfx());}catch(_){}}
   const mute=d.sound==='suspended';$('stage').classList.toggle('mute',mute);
   if(mute)$('nowplaying').innerHTML='<b class="warn">Sound is off. Click the screen to turn it on.</b>';else if(d.title)$('nowplaying').innerHTML=`<b>${d.title}</b> by ${d.group} · seed ${d.seed}`;
   if(playX&&d.pos!=null&&d.rows&&d.state==='play'&&d.tier===T[tier].label){const W=+$('diag').getAttribute('viewBox').split(' ')[2],x=Math.min(1,d.pos/d.rows)*W;playX.setAttribute('x1',x);playX.setAttribute('x2',x);playX.setAttribute('opacity',1);}
@@ -1068,13 +1188,73 @@ window.addEventListener('blur',()=>{if(document.activeElement===$('frame'))start
 $('seed').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=parseInt(e.target.value,16);if(!isNaN(v))setSeed(v);}});
 $('seed').addEventListener('change',e=>{const v=parseInt(e.target.value,16);if(!isNaN(v)&&v>>>0!==seed)setSeed(v);});
 $('midiBtn').onclick=()=>{const r=form.res[tier];if(!r.ev)return;const nm=genNames(seed),lab=tier===1?'tracker module':{shared:'shared form',free:'free form',era:'era idioms'}[mode];
-  offerMidi(`${nm.title} - ${T[tier].label} ${lab} - ${seed.toString(16).toUpperCase().padStart(8,'0')}`,toMidi(form.song,r,{title:nm.title,text:`Demoseed ${T[tier].label}, ${lab}, by ${nm.group}, seed ${seed.toString(16).toUpperCase().padStart(8,'0')}`}),t=>{$('midiSay').textContent=t;});};
+  offerMidi(`${nm.title} - ${T[tier].label} ${lab} - ${seed.toString(16).toUpperCase().padStart(8,'0')}`,toMidi(r.song||form.song,r,{title:nm.title,text:`Demoseed ${T[tier].label}, ${lab}, by ${nm.group}, seed ${seed.toString(16).toUpperCase().padStart(8,'0')}`}),t=>{$('midiSay').textContent=t;});};
 $('mShared').onclick=()=>setMode('shared');$('mFree').onclick=()=>setMode('free');$('mEra').onclick=()=>setMode('era');
+
+// ---- behind the scenes: the knobs
+const hasKnobs=()=>{for(const sc in K){const v=K[sc];if(sc==='song'){if(v&&Object.keys(v).length)return true;}else for(const L in v)if(v[L]&&Object.keys(v[L]).length)return true;}return false;};
+const scopeObj=(scope,L,make)=>{if(scope==='song'){if(!K.song&&make)K.song={};return K.song||{};}if(!K[scope]&&make)K[scope]={};const o=K[scope]||{};if(!o[L]&&make)o[L]={};return o[L]||{};};
+const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const tierL=()=>[-1,0,1,2,3][tier];
+function seedValue(scope,id){if(scope==='song')return form.song.seedPick[id];const r=form.res[tier];return r.knobs?r.knobs[id]:undefined;}
+function curValue(scope,id){const o=scopeObj(scope,tierL(),false);return o[id]!=null?o[id]:seedValue(scope,id);}
+function showVal(k,v){if(k.type==='toggle')return v?'on':'off';if(k.type==='select'){const o=k.opts.find(o=>String(o[0])===String(v));return o?o[1]:String(v);}if(k.type==='multi')return (v||[]).length+' on';if(k.type==='text')return '';return v+(k.unit||'');}
+let kTimer=0;
+function setKnob(scope,id,v,live){const o=scopeObj(scope,tierL(),true);if(eq(v,seedValue(scope,id)))delete o[id];else o[id]=v;
+  recompose();drawForm();updateDrawerMarks();clearTimeout(kTimer);if(!live)kTimer=setTimeout(sendKnobs,350);}
+function sendKnobs(){try{$('frame').contentWindow.postMessage({demoseedCmd:'knobs',knobs:K},'*');}catch(e){}}
+function knobRow(scope,k){const d=document.createElement('div');d.className='knob';d.dataset.scope=scope;d.dataset.id=k.id;const v=curValue(scope,k.id),uid='k_'+scope+'_'+k.id;
+  let ctl='';
+  if(k.type==='range')ctl=`<input type="range" id="${uid}" min="${k.min}" max="${k.max}" step="${k.step}" value="${v}">`;
+  else if(k.type==='select')ctl=`<select id="${uid}">${k.opts.map(o=>`<option value="${o[0]}"${String(o[0])===String(v)?' selected':''}>${o[1]}</option>`).join('')}</select>`;
+  else if(k.type==='toggle')ctl=`<label class="switch"><input type="checkbox" id="${uid}"${v?' checked':''}> <span>${v?'on':'off'}</span></label>`;
+  else if(k.type==='text')ctl=`<input type="text" id="${uid}" value="${v}" spellcheck="false" autocomplete="off">`;
+  else if(k.type==='multi')ctl=`<div class="chips" role="group" aria-label="${k.label}">${k.opts.map(o=>`<button type="button" data-v="${o[0]}" aria-pressed="${(v||[]).map(String).includes(String(o[0]))}">${o[1]}</button>`).join('')}</div>`;
+  d.innerHTML=`<div class="kh">${k.type==='toggle'||k.type==='multi'?`<span class="kl">${k.label}</span>`:`<label for="${uid}">${k.label}</label>`}<span class="kv">${showVal(k,v)}</span></div>${ctl}<div class="kp">${k.help}</div><div class="ks"><span class="seedv"></span><button type="button" class="kreset">back to the seed</button></div>`;
+  const parse=x=>{if(k.type==='range')return +x;if(k.type==='select'){const o=k.opts.find(o=>String(o[0])===x);return o?o[0]:x;}return x;};
+  if(k.type==='range'){const el=d.querySelector('input');let raf=0;el.addEventListener('input',()=>{d.querySelector('.kv').textContent=showVal(k,+el.value);cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>setKnob(scope,k.id,+el.value,true));});el.addEventListener('change',()=>setKnob(scope,k.id,+el.value,false));}
+  else if(k.type==='select'){const el=d.querySelector('select');el.addEventListener('change',()=>{setKnob(scope,k.id,parse(el.value),false);d.querySelector('.kv').textContent=showVal(k,parse(el.value));});}
+  else if(k.type==='toggle'){const el=d.querySelector('input');el.addEventListener('change',()=>{d.querySelector('.switch span').textContent=el.checked?'on':'off';d.querySelector('.kv').textContent=el.checked?'on':'off';setKnob(scope,k.id,el.checked,false);});}
+  else if(k.type==='text'){const el=d.querySelector('input');el.addEventListener('input',()=>{const t=el.value.trim();const ok=/^[A-Ebdcktxv|]+$/.test(t)&&/[A-E]/.test(t);el.classList.toggle('bad',!ok);if(ok)setKnob(scope,k.id,t,false);});}
+  else if(k.type==='multi'){d.querySelectorAll('.chips button').forEach(b=>b.addEventListener('click',()=>{const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);
+      const vals=[...d.querySelectorAll('.chips button')].filter(x=>x.getAttribute('aria-pressed')==='true').map(x=>{const o=k.opts.find(o=>String(o[0])===x.dataset.v);return o[0];});d.querySelector('.kv').textContent=showVal(k,vals);setKnob(scope,k.id,vals,false);}));}
+  d.querySelector('.kreset').addEventListener('click',()=>{const o=scopeObj(scope,tierL(),true);delete o[k.id];recompose();drawForm();renderDrawer();clearTimeout(kTimer);kTimer=setTimeout(sendKnobs,200);});
+  return d;}
+function renderDrawer(){if(!form)return;const body=$('dbody');body.innerHTML='';const L=tierL(),lab={shared:'shared form',free:'free form',era:'era idioms'}[mode];
+  $('dsub').textContent=`${T[tier].label} · ${tier<2?'fixed file':lab}${mode==='era'&&L>0?' · '+ERA_LABEL[L]:''}`;
+  if(L<1){body.innerHTML=`<p class="dnote">The 4K and 40K tiers are fixed files with their own composers baked in, so there is nothing to turn here. Pick 400K, 4M or 40M to open the knobs.</p>`;}
+  else{const sec=(title,note)=>{const d=document.createElement('section');d.className='dsec';d.innerHTML=`<h3>${title}<span>${note||''}</span></h3>`;body.append(d);return d;};
+    const s2=sec(mode==='free'?'The form: allowance':mode==='era'?'The form: '+ERA_LABEL[L]:'The form',mode==='shared'?'':T[tier].label+' only');
+    if(mode==='shared'){const p=document.createElement('p');p.className='dnote';p.innerHTML='Shared form follows one fixed plan, so its structure has no knobs. Free form exposes the allowance each tier may spend; Era idioms expose the habits of each era.<br><button type="button" id="dgoFree">Switch to Free form</button><button type="button" id="dgoEra">Switch to Era idioms</button>';s2.append(p);
+      p.querySelector('#dgoFree').onclick=()=>setMode('free');p.querySelector('#dgoEra').onclick=()=>setMode('era');}
+    else for(const k of knobsFor(mode,L))s2.append(knobRow(mode,k));
+    const s1=sec('The song','400K, 4M and 40M');for(const k of KNOB_UI.song)s1.append(knobRow('song',k));}
+  updateDrawerMarks();}
+function updateDrawerMarks(){const L=tierL();document.querySelectorAll('#dbody .knob').forEach(d=>{const sc=d.dataset.scope,id=d.dataset.id,o=scopeObj(sc,L,false),mod=o[id]!=null;d.classList.toggle('mod',mod);
+    const k=(sc==='song'?KNOB_UI.song:knobsFor(sc,L)).find(x=>x.id===id);d.querySelector('.seedv').textContent='seed: '+(k.type==='text'?seedValue(sc,id):k.type==='multi'?(seedValue(sc,id)||[]).map(v=>{const q=k.opts.find(o=>String(o[0])===String(v));return q?q[1]:v;}).join(', ')||'none':showVal(k,seedValue(sc,id)));d.querySelector('.kreset').hidden=!mod;});
+  $('knobsBtn').classList.toggle('mod',hasKnobs());drawPreview();
+  const ef=$('deffect');if(!hasKnobs()||!form0||tier<2){ef.textContent='Nothing changed yet: this is the seed’s own song.';return;}
+  const a=form0.res[tier],b=form.res[tier],sa=stats(a),sb=stats(b),mm=x=>Math.floor(x/60)+':'+String(Math.round(x%60)).padStart(2,'0'),f=(n,x,y,fmt=v=>v)=>`<span${x!==y?' class="up"':''}>${n} <b>${fmt(x)}</b> → <b>${fmt(y)}</b></span>`;
+  ef.innerHTML='Against the seed’s own song: '+[f('sections',sa.secs,sb.secs),f('bars',sa.bars,sb.bars),f('length',a.len,b.len,mm),f('themes',sa.themes,sb.themes),f('transforms',sa.xf,sb.xf),
+    f('repeats',Math.round(a.idiom.reps*100),Math.round(b.idiom.reps*100),v=>v+'%'),f('layers',+a.idiom.meanLayers.toFixed(1),+b.idiom.meanLayers.toFixed(1)),f('d′',a.sim.dp==null?'–':+a.sim.dp.toFixed(2),b.sim.dp==null?'–':+b.sim.dp.toFixed(2))].join(' · ');}
+// two strips on one time axis: the seed's own form, and the form with your knobs
+function drawPreview(){const svg=$('dprev');if(!svg||!form)return;svg.innerHTML='';if(tier<2){svg.setAttribute('height',0);return;}const rows=hasKnobs()&&form0?[['seed',form0.res[tier]],['yours',form.res[tier]]]:[['now',form.res[tier]]];
+  const W=Math.max(260,svg.clientWidth||380),LW=44,RH=40,H=rows.length*RH+14,maxR=Math.max(...rows.map(x=>x[1].rows)),xs=t=>LW+t/maxR*(W-LW);svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('height',H);
+  rows.forEach(([lab,r],i)=>{const y=i*RH+14;svg.append(svgEl('text',{x:0,y:y+14},lab));const firstOf={};
+    r.secs.forEach(x=>{const x0=xs(x.start),w=Math.max(1,xs(x.start+x.len)-x0-1),col=x.mat?MATCOL[x.mat]:NEUTRAL;const rc=svgEl('rect',{x:x0,y:y+4,width:w,height:16,fill:col,'fill-opacity':.25+.65*x.energy});rc.append(svgEl('title',{},x.name+', '+x.bars+' bars'));svg.append(rc);
+      if(x.meter!==16)svg.append(svgEl('rect',{x:x0,y:y+4,width:w,height:2,fill:'#ebe8e1'}));
+      if(x.mat){const p=firstOf[x.mat];if(p&&x.role!=='state'){const a=xs(p.start+p.len/2),b=xs(x.start+x.len/2),h=Math.min(9,(b-a)*.2);svg.append(svgEl('path',{d:`M${a} ${y+3}C${a} ${y+3-h*1.3} ${b} ${y+3-h*1.3} ${b} ${y+3}`,stroke:MATCOL[x.mat],'stroke-opacity':.75,fill:'none'}));}firstOf[x.mat]=x;}});});
+  svg.append(svgEl('text',{x:W,y:10,'text-anchor':'end'},`${Math.round(maxR/16)} bars`));}
+function openDrawer(on){$('drawer').classList.toggle('open',on);$('knobsBtn').setAttribute('aria-expanded',on);if(on){renderDrawer();setTimeout(()=>$('dclose').focus(),50);}else $('knobsBtn').focus();}
+$('knobsBtn').onclick=()=>openDrawer(!$('drawer').classList.contains('open'));$('dclose').onclick=()=>openDrawer(false);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&$('drawer').classList.contains('open'))openDrawer(false);});
+$('dresetTier').onclick=()=>{const L=tierL();if(K[mode])delete K[mode][L];recompose();drawForm();renderDrawer();sendKnobs();};
+$('dresetAll').onclick=()=>{K={};recompose();drawForm();renderDrawer();sendKnobs();};
 let rz=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(form){drawDiagram();drawCompare();}},150);});
 $('newseed').onclick=()=>setSeed((Math.random()*4294967296)>>>0);
 $('nextsong').onclick=()=>{try{$('frame').contentWindow.postMessage({demoseedCmd:'next'},'*');}catch(e){}};
 $('full').onclick=()=>{const s=$('stage');try{(s.requestFullscreen||s.webkitRequestFullscreen).call(s);}catch(e){}};
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const n=+e.key;if(n>=1&&n<=5)pick(n-1);});
+addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;const n=+e.key;if(n>=1&&n<=5)pick(n-1);});
 setSeed(seed);
 })();
 </script>
